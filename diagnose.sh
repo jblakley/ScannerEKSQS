@@ -6,3 +6,5 @@ kubectl logs --selector=app=scanner-master
 kubectl describe pods --selector=app=scanner-master
 kubectl describe pods --selector=app=scanner-worker
 kubectl get services scanner-master
+
+aws elb describe-load-balancers|jq -r '.LoadBalancerDescriptions[]'

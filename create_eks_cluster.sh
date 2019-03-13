@@ -10,10 +10,13 @@ if [ $# == 0 ]; then
     usage
 fi
 
-NAME=$1
+CLUSTER_NAME=$1
 
 VPC_STACK_NAME=eks-vpc
 AWSACCT=601041732504
+SLEEP=10
+
+export PATH=$PATH:.
 
 cd ~/capture
 
@@ -41,7 +44,7 @@ SUBNET_IDS=$(aws cloudformation describe-stacks --stack-name $VPC_STACK_NAME \
                  | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="SubnetIds") | .OutputValue')
 
 ### 2. Create the EKS cluster
-CLUSTER_NAME=$NAME
+# CLUSTER_NAME=$NAME
 ROLE_ARN=arn:aws:iam::${AWSACCT}:role/eksServiceRole
 
 aws eks create-cluster --name $CLUSTER_NAME \
@@ -54,7 +57,7 @@ COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
 while ! [ "$COND" = "\"ACTIVE\"" ]; do
   sleep 5
   COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
-  echo Cluster Status is "$COND"
+  echo "Cluster $CLUSTER_NAME Status is $COND"
 done
 echo "EKS cluster created."
 
