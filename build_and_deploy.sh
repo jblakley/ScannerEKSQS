@@ -1,6 +1,7 @@
 #!/bin/bash
 ### 0. Things to do up front (Blakley)
-cd ~/capture
+
+echo KUBECONFIG=$KUBECONFIG
 kubectl apply -f scanner-config.yml # In case of changes -- already done on cluster create
 
 test -z "$AWS_ACCESS_KEY_ID" && \
@@ -15,7 +16,6 @@ test -z "$AWS_SECRET_ACCESS_KEY" && \
 test -z "$AWS_SECRET_ACCESS_KEY" && \
 	(echo "Could not find AWS_SECRET_ACCESS_KEY";exit 1)
 
-
 ### 1. Check if container repo exists
 aws ecr describe-repositories --repository-names scanner
 REG_EXISTS=$?
@@ -23,8 +23,8 @@ if [ $REG_EXISTS -ne 0 ]; then
     # Create container repo
     aws ecr create-repository --repository-name scanner
 fi
-echo $AWS_ACCESS_KEY_ID
-echo $AWS_SECRET_ACCESS_KEY
+#	echo $AWS_ACCESS_KEY_ID
+#	echo $AWS_SECRET_ACCESS_KEY
 # Get container repo URI
 REPO_URI=$(aws ecr describe-repositories --repository-names scanner | jq -r '.repositories[0].repositoryUri')
 echo $REPO_URI

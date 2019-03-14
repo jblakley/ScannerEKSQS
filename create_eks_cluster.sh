@@ -10,15 +10,18 @@ if [ $# == 0 ]; then
     usage
 fi
 
-CLUSTER_NAME=$1
-
-VPC_STACK_NAME=eks-vpc
-AWSACCT=601041732504
+test -z "$CLUSTER_NAME" && CLUSTER_NAME=$1
+test -z "$NUMNODES" && NUMNODES=6  # Default
+test -z "$VPC_STACK_NAME" && VPC_STACK_NAME=eks-vpc
+test -z "$AWSACCT" && AWSACCT=601041732504
 SLEEP=10
+
+
+echo NUMNODES=$NUMNODES
 
 export PATH=$PATH:.
 
-cd ~/capture
+#cd ~/capture
 
 ### 1. Create a VPC (virtual private cloud) to launch the cluster into
 aws cloudformation describe-stacks --stack-name $VPC_STACK_NAME
@@ -87,7 +90,7 @@ aws cloudformation create-stack --stack-name $CLUSTER_NAME-workers \
     ParameterKey=ClusterControlPlaneSecurityGroup,ParameterValue=$SECURITY_GROUP_IDS \
     ParameterKey=NodeGroupName,ParameterValue=$CLUSTER_NAME-workers-node-group \
     ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue=1 \
-    ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue=6 \
+    ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue=$NUMNODES \
     ParameterKey=NodeInstanceType,ParameterValue=c4.8xlarge \
     ParameterKey=NodeImageId,ParameterValue=ami-dea4d5a1 \
     ParameterKey=KeyName,ParameterValue=ISTC-VCS1-JRB \
