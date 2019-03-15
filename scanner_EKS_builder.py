@@ -11,7 +11,11 @@ AWSACCT = "601041732504" # TODO include in parameters, defaults and interactive
 SLEEPTIME = 10
 
 def main():
-    numberNodes = None    
+    
+    global debugOn
+    
+    maxNodes = 4
+    nodesDesired = 2    
     
     try:
         print("# Start Cluster Builder")
@@ -20,8 +24,10 @@ def main():
         parser = OptionParser()
         parser.add_option("-c", "--clustername", dest="clustername",
                       help="use NAME as clustername", metavar="NAME")
-        parser.add_option("-n", "--nodes", dest="numberofnodes",
-                      help="use INT as number of nodes # TODO", metavar="INT")
+        parser.add_option("-n", "--nodesdesired", dest="nodesdesired",
+                      help="use INT as number of desired nodes in the cluster", metavar="INT")
+        parser.add_option("-m", "--maxnodes", dest="maxnodes",
+                      help="use INT as number of maximum nodes in the cluster # TODO", metavar="INT")
         parser.add_option("-C", "--create",
                       action="store_true", dest="create", default=False,
                       help="Create the cluster")
@@ -40,26 +46,35 @@ def main():
     
         (options, args) = parser.parse_args()
         
-        clusterName = options.clustername
-        numberNodes = options.numberofnodes
-        verboseOn = options.verbose
+        buildStaging = options.staging
         createCluster = options.create
         deployCluster = options.deploy
-        debugOn = options.debug
-        buildStaging = options.staging
+              
+        if options.maxnodes is not None:
+            maxNodes = int(options.maxnodes)
+        if options.nodesdesired is not None:     
+            nodesDesired = int(options.nodesdesired)
+        if maxNodes < nodesDesired:
+            print ("Maxnodes (%i) must be >= Nodesdesired (%i)\nMaxnodes set to Nodesdesired" % (maxNodes, nodesDesired))
+            maxNodes = nodesDesired
+        if nodesDesired < 2:
+            print ("Nodesdesired (%i) must be >1" % (nodesDesired))
+            exit(1)
 
+        clusterName = options.clustername
         while clusterName is None:
             clusterName = input("Enter clustername: ")
-        if createCluster:
-            while numberNodes is None:
-                numberNodes = input("Enter number of nodes: ")
-                
-        kwargs = {'CLUSTER_NAME':clusterName, 'NUMNODES':numberNodes, 
+
+        verboseOn = options.verbose
+
+        debugOn = options.debug
+
+        kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
                   'VERBOSE':verboseOn, 'DEBUG':debugOn, 
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
                   'VPC_STACK_NAME':VPC_STACK_NAME,'AWSACCT':AWSACCT}
 
-        # TODO error handling for missing values, **kwargs
+        # TODO error handling for missing values, **kwargs -- pretty print kwargs
         
         set_environ(kwargs)
         
@@ -69,44 +84,59 @@ def main():
         if createCluster is True:
             create_cluster(kwargs)
         setKubeconfig(kwargs)
-        oscmd("kubectl get nodes")
+#         scale_cluster(kwargs) # set desired size
+
+        wait_for_cluster()
+        scale_cluster(kwargs)
+        wait_for_cluster()        
         oscmd("env")
         if deployCluster is True:
             deploy_k8s(kwargs)
-        wait_for_deployment()
-        print("Wait for cluster to settle before running smoke test")
-        for ii in tqdm(range(60)):
-            time.sleep(1) # Wait for the cluster to settle down TODO -- make deterministic
-        run_smoke()
+            wait_for_deployment()
+            run_smoke()
    
         print ("# Completed Processing --> Exiting")
+        print ("#\tDon't forget to run \n#\t\t. ./setkubectl.sh %s\n#\tto set KUBECONFIG for your new cluster" % clusterName)
     except KeyboardInterrupt:
         sys.exit(0)
 def create_cluster(kwargs):
     # Need to check if cluster already exists TODO
     cn = kwargs['CLUSTER_NAME']
-    nn = kwargs['NUMNODES']
-    os.environ['NUMNODES'] = nn
+    nn = str(kwargs['MAXNODES'])
+    os.environ['MAXNODES'] = nn
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
-
-    if kwargs['DEBUG']:
-        dbgstr = "-vx"
-    else:
-        dbgstr = ""
-    cmdstr = ("bash %s ./create_eks_cluster.sh %s %s" % (dbgstr,cn,nn))
+    cmdstr = ("bash %s ./create_eks_cluster.sh %s %s" % (getDBGSTR(),cn,nn))
     oscmd(cmdstr)
     # Need to check for success TODO
 
 def deploy_k8s(kwargs):
     print("Deploying cluster %s" % kwargs['CLUSTER_NAME'])
-    if kwargs['DEBUG']:
-        dbgstr = "-vx"
-    else:
-        dbgstr = ""
-    cmdstr = ("bash %s ./build_and_deploy.sh" % dbgstr)
+    cmdstr = ("bash %s ./build_and_deploy.sh" % getDBGSTR())
     oscmd(cmdstr)
     # Need to check for success
+
+
+def wait_for_cluster():
+    SETTLETIME = 30 # seconds    
+    while True:
+        oscmd('kubectl get nodes')
+        nodessall = int(sp.check_output(
+        '''
+        kubectl get nodes|grep -v "NAME"|wc|awk '{print $1}'
+        ''',
+        shell=True).strip().decode('utf-8'))
+        nodesrunning = int(sp.check_output(
+        '''
+        kubectl get nodes|egrep "Ready"|wc|awk '{print $1}'
+        ''',
+        shell=True).strip().decode('utf-8'))
+        if nodessall == nodesrunning:
+            break
+        wait_bar(SLEEPTIME)
+    wait_bar(SETTLETIME)
+    print()
 def wait_for_deployment():
+    SETTLETIME = 90 # seconds
     while True:
         oscmd('kubectl get pods')
         workerpodsall = int(sp.check_output(
@@ -121,14 +151,25 @@ def wait_for_deployment():
         shell=True).strip().decode('utf-8'))
         if workerpodsall == workerpodsrunning:
             break
-        time.sleep(SLEEPTIME)
-    pass
-
+        wait_bar(SLEEPTIME)
+    wait_bar(SETTLETIME)
+    print()
 def run_smoke():
     cmdstr = ("python3 smoketest.py")
     oscmd(cmdstr)
     pass
-
+def scale_cluster(kwargs):
+    cmdstr = ("bash %s scalecluster.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
+    oscmd(cmdstr)
+    pass
+def scale_deployment(kwargs):
+    cmdstr = ("bash %s scaledeployment.sh" % getDBGSTR())
+    oscmd(cmdstr)
+    pass
+def scale_autoscaling_group(kwargs):
+    cmdstr = ("bash %s scaleasg.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
+    oscmd(cmdstr)
+    pass
 # App Utilities
 def setKubeconfig(kwargs):
     # Check me first
@@ -160,12 +201,27 @@ def getAWScred():
     os.environ['AWS_SECRET_ACCESS_KEY'] = secretk
     pass
 
+def getDBGSTR():
+    if debugOn:
+        return "-vx"
+    else:
+        return ""
+def wait_bar(seconds):
+    wait_range = tqdm(range(seconds))
+    for ii in wait_range:
+        time.sleep(1)
+    wait_range.close()
+    print("", file=sys.stderr)
+    print()
+
 def oscmd(cmdstr):
     os.system(cmdstr)
 
 def set_environ(kwargs):
     getAWScred() 
     os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
+    os.environ['NODESDESIRED'] = str(kwargs['NODESDESIRED'])
+    os.environ['MAXNODES'] = str(kwargs['MAXNODES'])
     # make sure that current directory is in PATH
     os.environ['PATH'] = os.environ['PATH'] + ":."
 

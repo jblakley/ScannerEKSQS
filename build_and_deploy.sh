@@ -15,6 +15,12 @@ test -z "$AWS_SECRET_ACCESS_KEY" && \
 
 test -z "$AWS_SECRET_ACCESS_KEY" && \
 	(echo "Could not find AWS_SECRET_ACCESS_KEY";exit 1)
+	
+# Create the number of replicas == number of k8s nodes minus 1 for the master
+test -z "$NODESDESIRED" && \
+	NODESDESIRED=$(kubectl get nodes -o json| jq -r '.items[].status.addresses[] | select(.type=="InternalIP") | .address'|wc|awk '{print $1}')
+REPLICAS=$(expr $NODESDESIRED - 1)
+echo "Creating $REPLICAS of worker node"
 
 ### 1. Check if container repo exists
 aws ecr describe-repositories --repository-names scanner
@@ -61,11 +67,9 @@ sed "s|<REPO_NAME>|$REPO_URI:scanner-master|g" master.yml.template > master.yml
 sed "s|<REPO_NAME>|$REPO_URI:scanner-worker|g" worker.yml.template > worker.yml
 
 # Record existing replicas for worker so we can scale the service after deleting
-REPLICAS=$(kubectl get deployments scanner-worker -o json | jq '.spec.replicas' -r)
+#REPLICAS=$(kubectl get deployments scanner-worker -o json | jq '.spec.replicas' -r)
 
-# Create the number of replicas == number of k8s nodes minus 1 for the master
-NUMNODES=$(kubectl get nodes -o json| jq -r '.items[].status.addresses[] | select(.type=="InternalIP") | .address'|wc|awk '{print $1}')
-REPLICAS=$(expr $NUMNODES - 1)
+
 
 # Delete and then redeploy the master and worker services
 kubectl delete deploy --all
