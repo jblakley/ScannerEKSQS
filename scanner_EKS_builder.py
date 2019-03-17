@@ -207,11 +207,11 @@ def getDBGSTR():
     else:
         return ""
 def wait_bar(seconds):
-    wait_range = tqdm(range(seconds))
+    wait_range = tqdm(range(seconds),file=sys.stdout)
     for ii in wait_range:
         time.sleep(1)
     wait_range.close()
-    print("", file=sys.stderr)
+#     print("", file=sys.stderr)
     print()
 
 def oscmd(cmdstr):
