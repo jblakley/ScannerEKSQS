@@ -97,7 +97,7 @@ def main():
             run_smoke()
    
         print ("# Completed Processing --> Exiting")
-        print ("#\tDon't forget to run \n#\t\t. ./setkubectl.sh %s\n#\tto set KUBECONFIG for your new cluster" % clusterName)
+        print ("#\tDon't forget to run:\n#\t\t. ./setkubectl.sh %s" % clusterName)
         print ("#\t\texport LD_LIBRARY_PATH=/usr/lib:/usr/local/lib")
         
     except KeyboardInterrupt:
