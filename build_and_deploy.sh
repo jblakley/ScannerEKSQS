@@ -10,7 +10,7 @@ test -z "$AWS_ACCESS_KEY_ID" && \
 test -z "$AWS_ACCESS_KEY_ID" && \
 	(echo "Could not find AWS_ACCESS_KEY_ID";exit 1)
 
-test -z "$AWS_SECRET_ACCESS_KEY" && \	
+test -z "$AWS_SECRET_ACCESS_KEY" && \
 	export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_access_key ~/.aws/credentials|awk '{print $3}')
 
 test -z "$AWS_SECRET_ACCESS_KEY" && \
