@@ -22,7 +22,7 @@ sudo apt-get install -y python-pip
 pip install awscli --upgrade --user
 
 # Configure aws
-aws configure
+test -z "$AWS_ACCESS_KEY_ID" && aws configure
 
 # Install kubectl
 sudo apt-get update && sudo apt-get install -y apt-transport-https
