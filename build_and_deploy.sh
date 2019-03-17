@@ -5,13 +5,13 @@ echo KUBECONFIG=$KUBECONFIG
 kubectl apply -f scanner-config.yml # In case of changes -- already done on cluster create
 
 test -z "$AWS_ACCESS_KEY_ID" && \
-	export AWS_ACCESS_KEY_ID=$(grep aws_access_key_id ~/.aws/credentials|cut -f2 -d "=")
+	export AWS_ACCESS_KEY_ID=$(grep aws_access_key_id ~/.aws/credentials|awk '{print $3}')
 	
 test -z "$AWS_ACCESS_KEY_ID" && \
 	(echo "Could not find AWS_ACCESS_KEY_ID";exit 1)
 
 test -z "$AWS_SECRET_ACCESS_KEY" && \	
-	export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_access_key ~/.aws/credentials|cut -f2 -d "=")
+	export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_access_key ~/.aws/credentials|awk '{print $3}')
 
 test -z "$AWS_SECRET_ACCESS_KEY" && \
 	(echo "Could not find AWS_SECRET_ACCESS_KEY";exit 1)
