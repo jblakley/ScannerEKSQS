@@ -19,8 +19,8 @@ cd ~/git
 git clone https://github.com/jblakley/HermesPeak
 cd ~/git/HermesPeak/ScannerPG/EKSScannerQS &&
 echo "Now run build_staging_machine.sh" &&
-. ./build_staging_machine.sh
+. ./build_staging_machine.sh &&
 
-cd ~/git/HermesPeak/ScannerPG/EKSScannerQS
-python3 scanner_EKS_builder.py -c jrbk8sQScluster2 -n 3 -m 5 --create --deploy -d 2>&1 |tee create.log
+cd ~/git/HermesPeak/ScannerPG/EKSScannerQS &&
+python3 scanner_EKS_builder.py -c jrbk8sQScluster2 -n 3 -m 5 --create --deploy && 
 . ./setkubectl.sh
