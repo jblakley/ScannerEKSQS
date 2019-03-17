@@ -49,6 +49,7 @@ def main():
         buildStaging = options.staging
         createCluster = options.create
         deployCluster = options.deploy
+        stagingMachine = options.staging
               
         if options.maxnodes is not None:
             maxNodes = int(options.maxnodes)
@@ -97,6 +98,8 @@ def main():
    
         print ("# Completed Processing --> Exiting")
         print ("#\tDon't forget to run \n#\t\t. ./setkubectl.sh %s\n#\tto set KUBECONFIG for your new cluster" % clusterName)
+        print ("#\t\texport LD_LIBRARY_PATH=/usr/lib:/usr/local/lib")
+        
     except KeyboardInterrupt:
         sys.exit(0)
 def create_cluster(kwargs):
@@ -149,7 +152,6 @@ def wait_for_deployment():
             if is_deployment_running():
                 break            
             wait_bar(SETTLETIME)
-#     print()
 def is_deployment_running():
     oscmd('kubectl get pods')
     workerpodsall = int(sp.check_output(
@@ -237,6 +239,7 @@ def set_environ(kwargs):
     os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
     os.environ['NODESDESIRED'] = str(kwargs['NODESDESIRED'])
     os.environ['MAXNODES'] = str(kwargs['MAXNODES'])
+    os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
     # make sure that current directory is in PATH
     os.environ['PATH'] = os.environ['PATH'] + ":."
 
