@@ -87,7 +87,6 @@ def main():
 #         scale_cluster(kwargs) # set desired size
 
         wait_for_cluster()
-        
         scale_cluster(kwargs)
         wait_for_cluster()        
         oscmd("env")
@@ -124,8 +123,8 @@ def wait_for_cluster():
             wait_bar(SLEEPTIME)
             if is_cluster_running():
                 break
-    wait_bar(SETTLETIME)
-    print()
+            wait_bar(SETTLETIME)
+#     print()
 def is_cluster_running():
     oscmd('kubectl get nodes')
     nodessall = int(sp.check_output(
@@ -149,8 +148,8 @@ def wait_for_deployment():
             wait_bar(SLEEPTIME)
             if is_deployment_running():
                 break            
-    wait_bar(SETTLETIME)
-    print()
+            wait_bar(SETTLETIME)
+#     print()
 def is_deployment_running():
     oscmd('kubectl get pods')
     workerpodsall = int(sp.check_output(
