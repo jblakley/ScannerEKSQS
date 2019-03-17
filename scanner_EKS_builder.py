@@ -207,9 +207,12 @@ def getDBGSTR():
     else:
         return ""
 def wait_bar(seconds):
-    wait_range = tqdm(range(seconds),file=sys.stdout)
+    wait_range = tqdm(range(seconds))
+#     wait_range = tqdm(range(seconds),file=sys.stdout)    
     for ii in wait_range:
+        wait_range.refresh()
         time.sleep(1)
+    wait_range.write("DONE", file=None, end='\n', nolock=False)
     wait_range.close()
 #     print("", file=sys.stderr)
     print()
