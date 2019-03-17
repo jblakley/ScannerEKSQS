@@ -9,7 +9,7 @@ apt -y install awscli &&
 # your credentials, region and json
 aws configure &&
 apt install python3-pip -y &&
-pip3 install awscli --upgrade
+pip3 install awscli --upgrade &&
 aws --version
 
 # GIT
