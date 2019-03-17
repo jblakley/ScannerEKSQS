@@ -87,6 +87,7 @@ def main():
 #         scale_cluster(kwargs) # set desired size
 
         wait_for_cluster()
+        
         scale_cluster(kwargs)
         wait_for_cluster()        
         oscmd("env")
@@ -117,43 +118,55 @@ def deploy_k8s(kwargs):
 
 
 def wait_for_cluster():
-    SETTLETIME = 30 # seconds    
-    while True:
-        oscmd('kubectl get nodes')
-        nodessall = int(sp.check_output(
-        '''
-        kubectl get nodes|grep -v "NAME"|wc|awk '{print $1}'
-        ''',
-        shell=True).strip().decode('utf-8'))
-        nodesrunning = int(sp.check_output(
-        '''
-        kubectl get nodes|egrep "Ready"|wc|awk '{print $1}'
-        ''',
-        shell=True).strip().decode('utf-8'))
-        if nodessall == nodesrunning:
-            break
-        wait_bar(SLEEPTIME)
+    SETTLETIME = 30 # seconds
+    if not is_cluster_running():    
+        while True:
+            wait_bar(SLEEPTIME)
+            if is_cluster_running():
+                break
     wait_bar(SETTLETIME)
     print()
+def is_cluster_running():
+    oscmd('kubectl get nodes')
+    nodessall = int(sp.check_output(
+    '''
+    kubectl get nodes|grep -v "NAME"|wc|awk '{print $1}'
+    ''',
+    shell=True).strip().decode('utf-8'))
+    nodesrunning = int(sp.check_output(
+    '''
+    kubectl get nodes|egrep "Ready"|wc|awk '{print $1}'
+    ''',
+    shell=True).strip().decode('utf-8'))
+    if nodessall == nodesrunning:
+        return True
+    else:
+        return False
 def wait_for_deployment():
     SETTLETIME = 120 # seconds
-    while True:
-        oscmd('kubectl get pods')
-        workerpodsall = int(sp.check_output(
-        '''
-        kubectl get pods|egrep -e "worker"|wc|awk '{print $1}'
-        ''',
-        shell=True).strip().decode('utf-8'))
-        workerpodsrunning = int(sp.check_output(
-        '''
-        kubectl get pods|egrep -e "worker.*Running"|wc|awk '{print $1}'
-        ''',
-        shell=True).strip().decode('utf-8'))
-        if workerpodsall == workerpodsrunning:
-            break
-        wait_bar(SLEEPTIME)
+    if not is_deployment_running():
+        while True:
+            wait_bar(SLEEPTIME)
+            if is_deployment_running():
+                break            
     wait_bar(SETTLETIME)
     print()
+def is_deployment_running():
+    oscmd('kubectl get pods')
+    workerpodsall = int(sp.check_output(
+    '''
+    kubectl get pods|egrep -e "worker"|wc|awk '{print $1}'
+    ''',
+    shell=True).strip().decode('utf-8'))
+    workerpodsrunning = int(sp.check_output(
+    '''
+    kubectl get pods|egrep -e "worker.*Running"|wc|awk '{print $1}'
+    ''',
+    shell=True).strip().decode('utf-8'))
+    if workerpodsall == workerpodsrunning:
+        return True
+    else:
+        return False
 def run_smoke():
     cmdstr = ("python3 smoketest.py")
     oscmd(cmdstr)
