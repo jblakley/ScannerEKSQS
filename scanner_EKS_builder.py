@@ -136,7 +136,7 @@ def wait_for_cluster():
     wait_bar(SETTLETIME)
     print()
 def wait_for_deployment():
-    SETTLETIME = 90 # seconds
+    SETTLETIME = 120 # seconds
     while True:
         oscmd('kubectl get pods')
         workerpodsall = int(sp.check_output(
