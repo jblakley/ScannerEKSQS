@@ -1,13 +1,13 @@
 ## Configure Ubuntu 16.04 Instance AWS for EKS and Scanner
 ## Must be root
-test -z "$1" CLUSTER_NAME=jrbk8sQScluster # DEFAULT
-test -n "$1" CLUSTER_NAME=$1
+test -z "$1" && export CLUSTER_NAME=jrbk8sQScluster # DEFAULT
+test -n "$1" && export CLUSTER_NAME=$1 # OVERRIDE
+
 QSHOME=~/git/HermesPeak/ScannerPG/EKSScannerQS
 
 DESIRENODES=2
 MAXNODES=2
-
-
+echo CLUSTER_NAME=$CLUSTER_NAME
 
 # AWS Tools
 apt update &&
