@@ -1,7 +1,7 @@
 ## Configure Ubuntu 16.04 Instance AWS for EKS and Scanner
 ## Must be root
-test -z "$1" CLUSTERNAME=jrbk8sQScluster # DEFAULT
-test -n "$1" CLUSTERNAME=$1
+test -z "$1" CLUSTER_NAME=jrbk8sQScluster # DEFAULT
+test -n "$1" CLUSTER_NAME=$1
 
 # AWS Tools
 apt update &&
@@ -27,8 +27,8 @@ git clone https://github.com/jblakley/HermesPeak
 cd ~/git/HermesPeak/ScannerPG/EKSScannerQS &&
 echo "Now run build_staging_machine.sh" &&
 #. ./build_staging_machine.sh &&
-python3 scanner_EKS_builder.py -c $CLUSTERNAME -n 3 -m 5 --staging
+python3 scanner_EKS_builder.py -c $CLUSTER_NAME -n 3 -m 5 --staging
 
 cd ~/git/HermesPeak/ScannerPG/EKSScannerQS &&
-python3 scanner_EKS_builder.py -c $CLUSTERNAME -n 3 -m 5 --create --deploy && 
+python3 scanner_EKS_builder.py -c $CLUSTER_NAME -n 3 -m 5 --create --deploy && 
 . ./setkubectl.sh

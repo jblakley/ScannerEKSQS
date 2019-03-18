@@ -243,7 +243,7 @@ def create_setK8SSenv(kwargs):
     fname = "setK8SSenv.sh"
     filed = open(fname,"w")
     for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTER_NAME']:
-        filed.write("%s=%s\n" % (evar,os.environ[evar]))
+        filed.write("export %s=%s\n" % (evar,os.environ[evar]))
     filed.close()
 def getDBGSTR():
     if debugOn:
