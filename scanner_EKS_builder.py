@@ -101,8 +101,7 @@ def main():
             run_smoke()
         create_setK8SSenv(kwargs)
         print ("# Completed Processing --> Exiting")
-        print ("#\tDon't forget to run:\n#\t\t. ./setkubectl.sh %s" % clusterName)
-        print ("#\t\texport LD_LIBRARY_PATH=/usr/lib:/usr/local/lib")
+        print ("#\tDon't forget to run:\n\t. ./setK8SSenv.sh %s")
         
     except KeyboardInterrupt:
         sys.exit(0)
