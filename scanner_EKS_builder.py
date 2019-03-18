@@ -105,6 +105,8 @@ def main():
 def create_cluster(kwargs):
     # Need to check if cluster already exists TODO
     cn = kwargs['CLUSTER_NAME']
+    
+    
     nn = str(kwargs['MAXNODES'])
     os.environ['MAXNODES'] = nn
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
@@ -214,6 +216,18 @@ def getAWScred():
     os.environ['AWS_ACCESS_KEY_ID'] = accessk
     os.environ['AWS_SECRET_ACCESS_KEY'] = secretk
     pass
+def isEKSCluster(cname):
+    if cname in getEKSClusters():
+        return True
+    else:
+        return False
+def getEKSClusters():
+    clusters = sp.check_output(
+        '''
+        aws eks list-clusters |jq -r '.clusters[]'
+        ''',
+        shell=True).strip().decode('utf-8')
+    return clusters
 
 def getDBGSTR():
     if debugOn:
