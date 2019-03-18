@@ -99,7 +99,7 @@ def main():
             deploy_k8s(kwargs)
             wait_for_deployment()
             run_smoke()
-   
+        create_setK8SSenv(kwargs)
         print ("# Completed Processing --> Exiting")
         print ("#\tDon't forget to run:\n#\t\t. ./setkubectl.sh %s" % clusterName)
         print ("#\t\texport LD_LIBRARY_PATH=/usr/lib:/usr/local/lib")
@@ -238,7 +238,12 @@ def getEKSClusters():
         ''',
         shell=True).strip().decode('utf-8')
     return clusters
-
+def create_setK8SSenv(kwargs):
+    fname = "setK8SSenv.sh"
+    filed = open(fname,"w")
+    for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTERNAME']:
+        filed.write("%s=$%s" % (evar,os.environ[evar]))
+    filed.close()
 def getDBGSTR():
     if debugOn:
         return "-vx"
