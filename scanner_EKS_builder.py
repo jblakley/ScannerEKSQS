@@ -84,9 +84,12 @@ def main():
         ''' App Run '''
         if createCluster is True:
             create_cluster(kwargs)
+        if not isEKSCluster(clusterName):
+            print("No such cluster: %s -- exiting" % clusterName)
+            sys.exit(1)
         setKubeconfig(kwargs)
 #         scale_cluster(kwargs) # set desired size
-
+        
         wait_for_cluster()
         scale_cluster(kwargs)
         wait_for_cluster()        
