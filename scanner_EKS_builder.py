@@ -70,7 +70,7 @@ def main():
 
         debugOn = options.debug
 
-        kwargs = {'CLUSTERNAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
+        kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
                   'VERBOSE':verboseOn, 'DEBUG':debugOn, 
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
                   'VPC_STACK_NAME':VPC_STACK_NAME,'AWSACCT':AWSACCT}
@@ -112,7 +112,7 @@ def build_staging_machine(kwargs):
     oscmd(cmdstr)   
 def create_cluster(kwargs):
     # Need to check if cluster already exists TODO
-    cn = kwargs['CLUSTERNAME']
+    cn = kwargs['CLUSTER_NAME']
     
     if isEKSCluster(cn):
         print("Cluster %s already exists -- can't create -- proceeding")
@@ -125,7 +125,7 @@ def create_cluster(kwargs):
     # Need to check for success TODO
 
 def deploy_k8s(kwargs):
-    print("Deploying cluster %s" % kwargs['CLUSTERNAME'])
+    print("Deploying cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./build_and_deploy.sh" % getDBGSTR())
     oscmd(cmdstr)
     # Need to check for success
@@ -200,7 +200,7 @@ def scale_autoscaling_group(kwargs):
 def setKubeconfig(kwargs):
     # Check me first
     meName = kwargs['USER']
-    clusterName = kwargs['CLUSTERNAME']
+    clusterName = kwargs['CLUSTER_NAME']
     homeDir = kwargs['HOME']
 
     myKube = "/%s/.kube/config-%s" % (meName,clusterName)
@@ -241,7 +241,7 @@ def getEKSClusters():
 def create_setK8SSenv(kwargs):
     fname = "setK8SSenv.sh"
     filed = open(fname,"w")
-    for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTERNAME']:
+    for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTER_NAME']:
         filed.write("%s=$%s" % (evar,os.environ[evar]))
     filed.close()
 def getDBGSTR():
@@ -265,7 +265,7 @@ def oscmd(cmdstr):
 
 def set_environ(kwargs):
     getAWScred() 
-    os.environ['CLUSTERNAME'] = kwargs['CLUSTERNAME']
+    os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
     os.environ['NODESDESIRED'] = str(kwargs['NODESDESIRED'])
     os.environ['MAXNODES'] = str(kwargs['MAXNODES'])
     os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
