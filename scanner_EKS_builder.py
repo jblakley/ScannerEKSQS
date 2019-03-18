@@ -49,7 +49,7 @@ def main():
         buildStaging = options.staging
         createCluster = options.create
         deployCluster = options.deploy
-        stagingMachine = options.staging
+        stagingMachineBuild = options.staging
               
         if options.maxnodes is not None:
             maxNodes = int(options.maxnodes)
@@ -82,14 +82,15 @@ def main():
         ''' End Setup '''
 
         ''' App Run '''
+        if stagingMachineBuild is True:
+            build_staging_machine(kwargs)
+
         if createCluster is True:
             create_cluster(kwargs)
         if not isEKSCluster(clusterName):
             print("No such cluster: %s -- exiting" % clusterName)
             sys.exit(1)
         setKubeconfig(kwargs)
-#         scale_cluster(kwargs) # set desired size
-        
         wait_for_cluster()
         scale_cluster(kwargs)
         wait_for_cluster()        
@@ -105,6 +106,10 @@ def main():
         
     except KeyboardInterrupt:
         sys.exit(0)
+def build_staging_machine(kwargs):
+    print("Building staging machine")
+    cmdstr = ("bash %s ./build_staging_machine.sh" % getDBGSTR())
+    oscmd(cmdstr)   
 def create_cluster(kwargs):
     # Need to check if cluster already exists TODO
     cn = kwargs['CLUSTER_NAME']
