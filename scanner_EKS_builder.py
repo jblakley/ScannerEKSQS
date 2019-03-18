@@ -106,7 +106,9 @@ def create_cluster(kwargs):
     # Need to check if cluster already exists TODO
     cn = kwargs['CLUSTER_NAME']
     
-    
+    if isEKSCluster(cn):
+        print("Cluster %s already exists -- can't create -- proceeding")
+        return
     nn = str(kwargs['MAXNODES'])
     os.environ['MAXNODES'] = nn
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
