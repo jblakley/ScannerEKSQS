@@ -101,7 +101,7 @@ def main():
             run_smoke()
         create_setK8SSenv(kwargs)
         print ("# Completed Processing --> Exiting")
-        print ("#\tDon't forget to run:\n\t. ./setK8SSenv.sh %s")
+        print ("#\tDon't forget to run:\n\t. ./setK8SSenv.sh")
         
     except KeyboardInterrupt:
         sys.exit(0)
