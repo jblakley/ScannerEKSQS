@@ -2,6 +2,12 @@
 ## Must be root
 test -z "$1" CLUSTER_NAME=jrbk8sQScluster # DEFAULT
 test -n "$1" CLUSTER_NAME=$1
+QSHOME=~/git/HermesPeak/ScannerPG/EKSScannerQS
+
+DESIRENODES=2
+MAXNODES=2
+
+
 
 # AWS Tools
 apt update &&
@@ -14,8 +20,8 @@ pip3 install awscli --upgrade &&
 aws configure &&
 aws --version
 
-export AWS_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY
+export AWS_ACCESS_KEY_ID=$(grep aws_access_key_id ~/.aws/credentials|awk '{print $3}')
+export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_access_key ~/.aws/credentials|awk '{print $3}')
 
 # GIT
 
@@ -24,11 +30,10 @@ cd ~/git
 git clone https://github.com/jblakley/HermesPeak
 
 
-cd ~/git/HermesPeak/ScannerPG/EKSScannerQS &&
+cd $QSHOME &&
 echo "Now run build_staging_machine.sh" &&
-#. ./build_staging_machine.sh &&
-python3 scanner_EKS_builder.py -c $CLUSTER_NAME -n 3 -m 5 --staging
+. ./build_staging_machine.sh &&
 
-cd ~/git/HermesPeak/ScannerPG/EKSScannerQS &&
-python3 scanner_EKS_builder.py -c $CLUSTER_NAME -n 3 -m 5 --create --deploy && 
+cd $QSHOME &&
+python3 scanner_EKS_builder.py -c $CLUSTER_NAME -n 2 -m 2 --create --deploy && 
 . ./setkubectl.sh
