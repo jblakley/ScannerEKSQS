@@ -4,11 +4,13 @@ import subprocess as sp
 import getpass
 from optparse import OptionParser
 import time
+import json
 from tqdm import tqdm
 
 VPC_STACK_NAME = "eks-vpc" # TODO include in parameters, defaults and interactive
 AWSACCT = "601041732504" # TODO include in parameters, defaults and interactive
 SLEEPTIME = 10
+CONFIGFILE = "seb_config.json"
 
 def main():
     
@@ -37,6 +39,8 @@ def main():
         parser.add_option("-S", "--staging",
                       action="store_true", dest="staging", default=False,
                       help="Make this instance a staging machine #TODO") #TODO
+        parser.add_option("-j", "--jsonconfig", dest="jsonconfig",
+                      help="use NAME as json configuration file", metavar="NAME")
         parser.add_option("-d", "--debug",
                       action="store_true", dest="debug", default=False,
                       help="Print debugging information")
@@ -45,12 +49,15 @@ def main():
                       help="Print detailed information #TODO")
     
         (options, args) = parser.parse_args()
-        
+        configJSON = options.jsonconfig
+        # need to finish -- load config file then override with new data from command line
+
         buildStaging = options.staging
         createCluster = options.create
         deployCluster = options.deploy
+        configJSON = jsonconfig
         stagingMachineBuild = options.staging
-              
+
         if options.maxnodes is not None:
             maxNodes = int(options.maxnodes)
         if options.nodesdesired is not None:     
