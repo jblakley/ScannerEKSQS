@@ -1,3 +1,6 @@
+# Configure aws
+test -z "$AWS_ACCESS_KEY_ID" && aws configure
+
 # Install docker
 sudo apt-get install -y \
     apt-transport-https \
@@ -20,9 +23,6 @@ sudo apt-get install -y jq
 # Install aws
 sudo apt-get install -y python-pip
 pip install awscli --upgrade --user
-
-# Configure aws
-test -z "$AWS_ACCESS_KEY_ID" && aws configure
 
 # Install kubectl
 sudo apt-get update && sudo apt-get install -y apt-transport-https
