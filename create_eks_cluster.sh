@@ -14,7 +14,7 @@ fi
 test -n "$1" && export CLUSTER_NAME=$1 
 test -z "$VPC_STACK_NAME" && export VPC_STACK_NAME=eks-vpc
 test -z "$AWSACCT" && export AWSACCT=601041732504
-test -z "$INSTANCE_TYPE" && export INSTANCETYPE=c4.8xlarge
+test -z "$INSTANCE_TYPE" && export INSTANCE_TYPE=c4.8xlarge
 test -z "$MAXNODES" && export MAXNODES=6
 test -z "$NODESDESIRED" && export NODESDESIRED=3
 test -z "$AMI" && export AMI=ami-dea4d5a1
