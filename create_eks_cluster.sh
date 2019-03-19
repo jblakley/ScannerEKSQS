@@ -6,22 +6,24 @@ function usage {
     exit 1
 }
 
+# Set up parameters -- if not set in environment, use default
 if [ $# == 0 ]; then
-    usage
+	test -z "$CLUSTER_NAME" && usage
 fi
 
-test -z "$CLUSTER_NAME" && CLUSTER_NAME=$1
-test -z "$MAXNODES" && MAXNODES=4  # Default
-test -z "$NODESDESIRED" && NODESDESIRED=3  # Default
-test -z "$VPC_STACK_NAME" && VPC_STACK_NAME=eks-vpc
-test -z "$AWSACCT" && AWSACCT=601041732504
-SLEEP=10
+test -n "$1" && export CLUSTER_NAME=$1 
+test -z "$VPC_STACK_NAME" && export VPC_STACK_NAME=eks-vpc
+test -z "$AWSACCT" && export AWSACCT=601041732504
+test -z "$INSTANCE_TYPE" && export INSTANCETYPE=c4.8xlarge
+test -z "$MAXNODES" && export MAXNODES=6
+test -z "$NODESDESIRED" && export NODESDESIRED=3
+test -z "$AMI" && export AMI=ami-dea4d5a1
+test -z "$KEYNAME" && export KEYNAME=ISTC-VCS1-JRB
+test -z "$REGION" && export REGION=us-east-1
 
 echo "MAXNODES=$MAXNODES NODESDESIRED=$NODESDESIRED"
 
 export PATH=$PATH:.
-
-#cd ~/capture
 
 ### 1. Create a VPC (virtual private cloud) to launch the cluster into
 aws cloudformation describe-stacks --stack-name $VPC_STACK_NAME
@@ -47,7 +49,6 @@ SUBNET_IDS=$(aws cloudformation describe-stacks --stack-name $VPC_STACK_NAME \
                  | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="SubnetIds") | .OutputValue')
 
 ### 2. Create the EKS cluster
-# CLUSTER_NAME=$NAME
 ROLE_ARN=arn:aws:iam::${AWSACCT}:role/eksServiceRole
 
 aws eks create-cluster --name $CLUSTER_NAME \
@@ -86,14 +87,14 @@ aws cloudformation create-stack --stack-name $CLUSTER_NAME-workers \
     --template-body file://scanner-eks-nodegroup.yaml \
     --capabilities CAPABILITY_IAM \
     --parameters \
-    ParameterKey=ClusterName,ParameterValue=$CLUSTER_NAME \
+	ParameterKey=ClusterName,ParameterValue=$CLUSTER_NAME \
     ParameterKey=ClusterControlPlaneSecurityGroup,ParameterValue=$SECURITY_GROUP_IDS \
     ParameterKey=NodeGroupName,ParameterValue=$CLUSTER_NAME-workers-node-group \
-    ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue=1 \
+	ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue=1 \
     ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue=$MAXNODES \
-    ParameterKey=NodeInstanceType,ParameterValue=c4.8xlarge \
-    ParameterKey=NodeImageId,ParameterValue=ami-dea4d5a1 \
-    ParameterKey=KeyName,ParameterValue=ISTC-VCS1-JRB \
+    ParameterKey=NodeInstanceType,ParameterValue=$INSTANCE_TYPE \
+    ParameterKey=NodeImageId,ParameterValue=$AMI \
+    ParameterKey=KeyName,ParameterValue=$KEYNAME \
     ParameterKey=VpcId,ParameterValue=$VPC_ID \
     ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\"
 
@@ -127,7 +128,6 @@ kubectl create clusterrolebinding kube-system-default-admin \
   --serviceaccount=default:default
 
 ### 6. Tell master and worker pods about db path
-# Pablo's bucket jhubs3
 sed "s|<CLUSTER_NAME>|$CLUSTER_NAME|g" scanner-config.yaml.template > scanner-config.yml
 kubectl apply -f scanner-config.yml
 
