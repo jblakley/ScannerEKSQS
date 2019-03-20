@@ -52,11 +52,12 @@ def main():
         configJSON = options.jsonconfig
         # need to finish -- load config file then override with new data from command line
 
+        verboseOn = options.verbose
+        debugOn = options.debug
+
         buildStaging = options.staging
         createCluster = options.create
         deployCluster = options.deploy
-        configJSON = jsonconfig
-        stagingMachineBuild = options.staging
 
         if options.maxnodes is not None:
             maxNodes = int(options.maxnodes)
@@ -73,9 +74,6 @@ def main():
         while clusterName is None:
             clusterName = input("Enter clustername: ")
 
-        verboseOn = options.verbose
-
-        debugOn = options.debug
 
         kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
                   'VERBOSE':verboseOn, 'DEBUG':debugOn, 
@@ -89,7 +87,7 @@ def main():
         ''' End Setup '''
 
         ''' App Run '''
-        if stagingMachineBuild is True:
+        if buildStaging is True:
             build_staging_machine(kwargs)
 
         if createCluster is True:
@@ -109,6 +107,8 @@ def main():
         create_setK8SSenv(kwargs)
         print ("# Completed Processing --> Exiting")
         print ("#\tDon't forget to run:\n\t. ./setK8SSenv.sh")
+        
+        ''' End App Run '''
         
     except KeyboardInterrupt:
         sys.exit(0)
