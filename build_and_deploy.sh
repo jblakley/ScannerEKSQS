@@ -16,6 +16,9 @@ test -z "$AWS_SECRET_ACCESS_KEY" && \
 test -z "$AWS_SECRET_ACCESS_KEY" && \
 	(echo "Could not find AWS_SECRET_ACCESS_KEY";exit 1)
 	
+test -z "$REGION" && \
+	REGION=us-east-1
+	
 # Create the number of replicas == number of k8s nodes minus 1 for the master
 test -z "$NODESDESIRED" && \
 	NODESDESIRED=$(kubectl get nodes -o json| jq -r '.items[].status.addresses[] | select(.type=="InternalIP") | .address'|wc|awk '{print $1}')
@@ -36,7 +39,7 @@ REPO_URI=$(aws ecr describe-repositories --repository-names scanner | jq -r '.re
 echo $REPO_URI
 
 ### 2. Build master and worker docker images
-docker pull jpablomch/scanner-contrib:latest
+docker pull jpablomch/scanner-aws:latest
 
 docker build -t $REPO_URI:scanner-master . \
        -f Dockerfile.master
@@ -44,7 +47,7 @@ docker build -t $REPO_URI:scanner-master . \
 docker build -t $REPO_URI:scanner-worker . \
        -f Dockerfile.worker
 
-aws configure set default.region us-east-1
+aws configure set default.region ${REGION}
 
 # Provides an auth token to enable pushing to container repo
 LOGIN_CMD=$(aws ecr get-login --no-include-email)

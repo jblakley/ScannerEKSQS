@@ -1,4 +1,4 @@
-FROM jpablomch/scanner-contrib:latest
+FROM jpablomch/scanner-aws:latest
 WORKDIR /app
 
 COPY worker.py .
