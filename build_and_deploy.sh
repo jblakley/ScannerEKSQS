@@ -36,7 +36,7 @@ REPO_URI=$(aws ecr describe-repositories --repository-names scanner | jq -r '.re
 echo $REPO_URI
 
 ### 2. Build master and worker docker images
-docker pull scannerresearch/scanner:cpu-latest
+docker pull jpablomch/scanner-contrib:latest
 
 docker build -t $REPO_URI:scanner-master . \
        -f Dockerfile.master

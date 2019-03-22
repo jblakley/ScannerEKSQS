@@ -1,4 +1,4 @@
-FROM scannerresearch/scanner:cpu-latest
+FROM jpablomch/scanner-contrib:latest
 WORKDIR /app
 
 COPY master.py .
