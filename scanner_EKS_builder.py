@@ -15,9 +15,10 @@ CONFIGFILE = "seb_config.json"
 def main():
     
     global debugOn
+    global verboseOn
     
     maxNodes = 4
-    nodesDesired = 2    
+    nodesDesired = 2
     
     try:
         print("# Start Cluster Builder")
@@ -51,6 +52,26 @@ def main():
         (options, args) = parser.parse_args()
         configJSON = options.jsonconfig
         # need to finish -- load config file then override with new data from command line
+        if configJSON is None:
+            configJSON = CONFIGFILE
+        
+        if os.path.isfile(configJSON):
+            with open(configJSON) as jfile:
+                jdata = json.load(jfile)
+                for key in jdata.keys():
+                    if key == 'maxNodes':
+                        maxNodes = jdata[key]
+                    elif key == 'nodesDesired':
+                        nodesDesired = jdata[key]
+                    elif key == 'region':
+                        awsRegion = jdata[key]
+                    elif key == 'account':
+                        AWSACCT = jdata[key]                        
+                    elif key == 'clusterName':
+                        clusterName = jdata[key]
+        else:
+            print("Configuration file %s does not exist" % configJSON)
+            exit(1)
 
         verboseOn = options.verbose
         debugOn = options.debug
@@ -70,7 +91,8 @@ def main():
             print ("Nodesdesired (%i) must be >1" % (nodesDesired))
             exit(1)
 
-        clusterName = options.clustername
+        if options.clustername is not None:
+            clusterName = options.clustername
         while clusterName is None:
             clusterName = input("Enter clustername: ")
 
@@ -78,7 +100,8 @@ def main():
         kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
                   'VERBOSE':verboseOn, 'DEBUG':debugOn, 
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
-                  'VPC_STACK_NAME':VPC_STACK_NAME,'AWSACCT':AWSACCT}
+                  'VPC_STACK_NAME':VPC_STACK_NAME,
+                  'AWSACCT':AWSACCT,'REGION':awsRegion}
 
         # TODO error handling for missing values, **kwargs -- pretty print kwargs
         
