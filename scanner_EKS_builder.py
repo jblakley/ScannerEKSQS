@@ -7,12 +7,16 @@ import time
 import json
 from tqdm import tqdm
 
-VPC_STACK_NAME = "eks-vpc" # TODO include in parameters, defaults and interactive
-AWSACCT = "601041732504" # TODO include in parameters, defaults and interactive
+
 SLEEPTIME = 10
-CONFIGFILE = "seb_config.json"
+
 
 def main():
+    ''' Default Parameters '''
+    VPC_STACK_NAME = "VPC_STACK_NAME_DEFAULT" 
+    AWSACCT = "AWSACCT_DEFAULT"
+    CONFIGFILE = "seb_config.json"
+    CONTAINER_TAG = "scannerresearch/scanner:cpu-latest"
     
     global debugOn
     global verboseOn
@@ -34,6 +38,9 @@ def main():
         parser.add_option("-C", "--create",
                       action="store_true", dest="create", default=False,
                       help="Create the cluster")
+        parser.add_option("-B", "--build",
+                      action="store_true", dest="build", default=False,
+                      help="Build the deployment for the cluster")
         parser.add_option("-D", "--deploy",
                       action="store_true", dest="deploy", default=False,
                       help="Build and Deploy the cluster")
@@ -51,7 +58,15 @@ def main():
     
         (options, args) = parser.parse_args()
         configJSON = options.jsonconfig
+        
         # need to finish -- load config file then override with new data from command line
+        ''' Options Priority:
+            1) Command line override
+            2) Configuration file
+            3) Default values
+        '''
+        
+        ''' Configuration file '''
         if configJSON is None:
             configJSON = CONFIGFILE
         
@@ -69,21 +84,30 @@ def main():
                         AWSACCT = jdata[key]                        
                     elif key == 'clusterName':
                         clusterName = jdata[key]
+                    elif key == 'CONTAINER_TAG':
+                        CONTAINER_TAG = jdata[key]
+                    elif key == 'VPC_STACK_NAME':
+                        VPC_STACK_NAME = jdata[key]
         else:
             print("Configuration file %s does not exist" % configJSON)
             exit(1)
-
+        
+        ''' Only set on command line '''
         verboseOn = options.verbose
         debugOn = options.debug
 
         buildStaging = options.staging
         createCluster = options.create
+        buildDeployment = options.build        
         deployCluster = options.deploy
 
+        
+        ''' Command line overrides '''
         if options.maxnodes is not None:
             maxNodes = int(options.maxnodes)
         if options.nodesdesired is not None:     
             nodesDesired = int(options.nodesdesired)
+        ''' Node mix validation -- maxNodes > nodesDesired and nodesDesired > 2 (one worker, one master) '''
         if maxNodes < nodesDesired:
             print ("Maxnodes (%i) must be >= Nodesdesired (%i)\nMaxnodes set to Nodesdesired" % (maxNodes, nodesDesired))
             maxNodes = nodesDesired
@@ -95,12 +119,13 @@ def main():
             clusterName = options.clustername
         while clusterName is None:
             clusterName = input("Enter clustername: ")
-
-
+        
+        ''' The following don't (yet) have comand line overrides -- HOME, USER, VPC_STACK_NAME, AWSACCT, REGION '''
         kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
                   'VERBOSE':verboseOn, 'DEBUG':debugOn, 
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
                   'VPC_STACK_NAME':VPC_STACK_NAME,
+                  'CONTAINER_TAG':CONTAINER_TAG,
                   'AWSACCT':AWSACCT,'REGION':awsRegion}
 
         # TODO error handling for missing values, **kwargs -- pretty print kwargs
@@ -123,6 +148,8 @@ def main():
         scale_cluster(kwargs)
         wait_for_cluster()        
         oscmd("env")
+        if buildDeployment is True:
+            build_deployment(kwargs)
         if deployCluster is True:
             deploy_k8s(kwargs)
             wait_for_deployment()
@@ -153,9 +180,14 @@ def create_cluster(kwargs):
     oscmd(cmdstr)
     # Need to check for success TODO
 
+def build_deployment(kwargs):
+    print("Deploying deployment for %s" % kwargs['CLUSTER_NAME'])
+    cmdstr = ("bash %s ./build_deployment.sh" % getDBGSTR())
+    oscmd(cmdstr)
+
 def deploy_k8s(kwargs):
     print("Deploying cluster %s" % kwargs['CLUSTER_NAME'])
-    cmdstr = ("bash %s ./build_and_deploy.sh" % getDBGSTR())
+    cmdstr = ("bash %s ./deploy.sh" % getDBGSTR())
     oscmd(cmdstr)
     # Need to check for success
 
@@ -244,12 +276,12 @@ def setKubeconfig(kwargs):
 def getAWScred():
     accessk = sp.check_output(
         '''
-        grep aws_access_key_id ~/.aws/credentials|cut -f2 -d "="
+        grep aws_access_key_id /root/.aws/credentials|cut -f2 -d "="
         ''',
         shell=True).strip().decode('utf-8')
     secretk = sp.check_output(
         '''
-        grep aws_secret_access_key ~/.aws/credentials|cut -f2 -d "="
+        grep aws_secret_access_key /root/.aws/credentials|cut -f2 -d "="
         ''',
         shell=True).strip().decode('utf-8')
     os.environ['AWS_ACCESS_KEY_ID'] = accessk
@@ -280,26 +312,33 @@ def getDBGSTR():
     else:
         return ""
 def wait_bar(seconds):
-    wait_range = tqdm(range(seconds))
-#     wait_range = tqdm(range(seconds),file=sys.stdout)    
+    wait_range = tqdm(range(seconds)) 
     for ii in wait_range:
         wait_range.refresh()
         time.sleep(1)
     wait_range.write("DONE", file=None, end='\n', nolock=False)
     wait_range.close()
-#     print("", file=sys.stderr)
     print()
 
 def oscmd(cmdstr):
     os.system(cmdstr)
 
 def set_environ(kwargs):
+    # Fix for root with bad home (ubuntu 16.04)
+    if kwargs['USER'] == 'root' and kwargs['HOME'] != '/root':
+        kwargs['HOME'] = '/root'
+        os.environ['HOME'] = '/root'
     getAWScred() 
     os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
+    os.environ['AWSACCT'] = kwargs['AWSACCT']
+    os.environ['REGION'] = kwargs['REGION']    
     os.environ['NODESDESIRED'] = str(kwargs['NODESDESIRED'])
     os.environ['MAXNODES'] = str(kwargs['MAXNODES'])
+    os.environ['VPC_STACK_NAME'] = kwargs['VPC_STACK_NAME']
+    os.environ['CONTAINER_TAG'] = kwargs['CONTAINER_TAG']
+
+    # Get paths right
     os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
-    # make sure that current directory is in PATH
     os.environ['PATH'] = os.environ['PATH'] + ":."
 
 
