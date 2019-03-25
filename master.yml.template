@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: scanner-master
-          image: 601041732504.dkr.ecr.us-east-1.amazonaws.com/scanner:scanner-master
+          image: <AWSACCT>.dkr.ecr.us-east-1.amazonaws.com/scanner:scanner-master
           imagePullPolicy: Always
           env:
             - name: AWS_ACCESS_KEY_ID

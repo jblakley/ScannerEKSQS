@@ -33,8 +33,8 @@ kubectl create secret generic aws-storage-key \
         --from-literal=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 
 # Replace REPO_NAME with the location of the docker image
-sed "s|<REPO_NAME>|$REPO_URI:scanner-master|g" master.yml.template > master.yml
-sed "s|<REPO_NAME>|$REPO_URI:scanner-worker|g" worker.yml.template > worker.yml
+sed "s|<REPO_NAME>|$REPO_URI:scanner-master|g;s|<AWSACCT>|$AWSACCT|g" master.yml.template > master.yml
+sed "s|<REPO_NAME>|$REPO_URI:scanner-worker|g;s|<AWSACCT>|$AWSACCT|g" worker.yml.template > worker.yml
 
 # Delete and then redeploy the master and worker services
 kubectl delete deploy --all

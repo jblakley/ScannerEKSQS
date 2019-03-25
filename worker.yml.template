@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: scanner-worker
-          image: 601041732504.dkr.ecr.us-east-1.amazonaws.com/scanner:scanner-worker
+          image: <AWSACCT>.dkr.ecr.us-east-1.amazonaws.com/scanner:scanner-worker
           imagePullPolicy: Always
           securityContext:
             privileged: true
