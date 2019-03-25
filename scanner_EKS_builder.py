@@ -47,7 +47,7 @@ def main():
         parser.add_option("-S", "--staging",
                       action="store_true", dest="staging", default=False,
                       help="Make this instance a staging machine")
-        parser.add_option( "--delete",
+        parser.add_option( "-e", "--delete",
                       action="store_true", dest="delete", default=False,
                       help="delete the cluster TODO")
         parser.add_option("-j", "--jsonconfig", dest="jsonconfig",
