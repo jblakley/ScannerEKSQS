@@ -142,7 +142,7 @@ def main():
         
         if deleteCluster is True:
             delete_cluster(kwargs)
-            sys.exist(0)
+            sys.exit(0)
         if buildStaging is True:
             build_staging_machine(kwargs)
 
@@ -201,6 +201,8 @@ def deploy_k8s(kwargs):
 
 def delete_cluster(kwargs):
     print("Deleting cluster %s" % kwargs['CLUSTER_NAME'])
+    cmdstr = ("bash %s ./delete_eks_cluster.sh %s" % (getDBGSTR(), kwargs['CLUSTER_NAME']))
+    oscmd(cmdstr)
 
 def wait_for_cluster():
     SETTLETIME = 30 # seconds
