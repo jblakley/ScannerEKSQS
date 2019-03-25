@@ -3,7 +3,7 @@
 	"nodesDesired":2,
 	"region":"us-east-1",
 	"account":"601041732504",
-	"clusterName":"jrbQStest1",
+	"clusterName":"jrbQStest2",
 	"VPC_STACK_NAME":"eks-vpc",
 	"CONTAINER_TAG":"jpablomch/scanner-aws:latest"
 }

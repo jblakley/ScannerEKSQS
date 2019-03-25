@@ -46,7 +46,7 @@ def main():
                       help="Build and Deploy the cluster")
         parser.add_option("-S", "--staging",
                       action="store_true", dest="staging", default=False,
-                      help="Make this instance a staging machine #TODO") #TODO
+                      help="Make this instance a staging machine")
         parser.add_option("-j", "--jsonconfig", dest="jsonconfig",
                       help="use NAME as json configuration file", metavar="NAME")
         parser.add_option("-d", "--debug",

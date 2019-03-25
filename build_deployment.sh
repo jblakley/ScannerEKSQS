@@ -23,10 +23,10 @@ test -z "$CONTAINER_TAG" && \
 	export CONTAINER_TAG=jpablomch/scanner-aws:latest
 
 # Create the number of replicas == number of k8s nodes minus 1 for the master
-test -z "$NODESDESIRED" && \
-	NODESDESIRED=$(kubectl get nodes -o json| jq -r '.items[].status.addresses[] | select(.type=="InternalIP") | .address'|wc|awk '{print $1}')
-REPLICAS=$(expr $NODESDESIRED - 1)
-echo "Creating $REPLICAS of worker node"
+#test -z "$NODESDESIRED" && \
+#	NODESDESIRED=$(kubectl get nodes -o json| jq -r '.items[].status.addresses[] | select(.type=="InternalIP") | .address'|wc|awk '{print $1}')
+#REPLICAS=$(expr $NODESDESIRED - 1)
+#echo "Creating $REPLICAS of worker node"
 
 ### 1. Check if container repo exists
 aws ecr describe-repositories --repository-names scanner
@@ -43,6 +43,9 @@ echo $REPO_URI
 
 ### 2. Build master and worker docker images
 docker pull $CONTAINER_TAG
+sed "s#<CONTAINER_TAG>#$CONTAINER_TAG#" < Dockerfile.master.template > Dockerfile.master
+sed "s#<CONTAINER_TAG>#$CONTAINER_TAG#" < Dockerfile.worker.template > Dockerfile.worker
+	
 
 docker build -t $REPO_URI:scanner-master . \
        -f Dockerfile.master

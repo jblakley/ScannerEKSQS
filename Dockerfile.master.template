@@ -1,4 +1,4 @@
-FROM jpablomch/scanner-aws:latest
+FROM <CONTAINER_TAG>
 WORKDIR /app
 
 COPY master.py .
