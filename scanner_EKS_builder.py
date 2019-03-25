@@ -47,6 +47,9 @@ def main():
         parser.add_option("-S", "--staging",
                       action="store_true", dest="staging", default=False,
                       help="Make this instance a staging machine")
+        parser.add_option( "--delete",
+                      action="store_true", dest="delete", default=False,
+                      help="delete the cluster TODO")
         parser.add_option("-j", "--jsonconfig", dest="jsonconfig",
                       help="use NAME as json configuration file", metavar="NAME")
         parser.add_option("-d", "--debug",
@@ -100,6 +103,7 @@ def main():
         createCluster = options.create
         buildDeployment = options.build        
         deployCluster = options.deploy
+        deleteCluster = options.delete
 
         
         ''' Command line overrides '''
