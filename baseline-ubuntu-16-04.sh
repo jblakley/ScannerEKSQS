@@ -1,5 +1,8 @@
 ## Configure Ubuntu 16.04 Instance AWS for EKS and Scanner
 ## Must be root
+apt install python3-pip
+pip3 install tqdm
+
 test -z "$1" && export CLUSTER_NAME=jrbk8sQScluster # DEFAULT
 test -n "$1" && export CLUSTER_NAME=$1 # OVERRIDE
 
@@ -29,11 +32,5 @@ test -d ~/git || mkdir ~/git
 cd ~/git
 test -d HermesPeak || git clone https://github.com/jblakley/HermesPeak
 
-
-cd $QSHOME &&
-echo "Now run build_staging_machine.sh" &&
-. ./build_staging_machine.sh &&
-
-cd $QSHOME &&
-python3 scanner_EKS_builder.py -c $CLUSTER_NAME -n 2 -m 2 --create --deploy && 
-. ./setkubectl.sh
+cd $QSHOME
+python3 ./scanner_EKS_builder.py -n $DESIRENODES -m $MAXNODES -c $CLUSTER_NAME -S --create --build --deploy
