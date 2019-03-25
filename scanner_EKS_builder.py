@@ -139,6 +139,10 @@ def main():
         ''' End Setup '''
 
         ''' App Run '''
+        
+        if deleteCluster is True:
+            delete_cluster(kwargs)
+            sys.exist(0)
         if buildStaging is True:
             build_staging_machine(kwargs)
 
@@ -195,6 +199,8 @@ def deploy_k8s(kwargs):
     oscmd(cmdstr)
     # Need to check for success
 
+def delete_cluster(kwargs):
+    print("Deleting cluster %s" % kwargs['CLUSTER_NAME'])
 
 def wait_for_cluster():
     SETTLETIME = 30 # seconds
