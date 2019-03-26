@@ -343,8 +343,10 @@ def set_environ(kwargs):
         kwargs['HOME'] = '/root'
         os.environ['HOME'] = '/root'
     getAWScred() 
-    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','NODESDESIRED','MAXNODES','VPC_STACK_NAME','CONTAINER_TAG','BUCKET']:
+    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','VPC_STACK_NAME','CONTAINER_TAG','BUCKET']:
         os.environ[envvar] = kwargs[envvar]
+    for envvar in ['NODESDESIRED','MAXNODES']:
+        os.environ[envvar] = str(kwargs[envvar])
 #     os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
 #     os.environ['AWSACCT'] = kwargs['AWSACCT']
 #     os.environ['REGION'] = kwargs['REGION']    
