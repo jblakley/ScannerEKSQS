@@ -4,10 +4,10 @@ data:
   config.toml: |
     [storage]
     type = "s3"
-    bucket = "s3-scanner-utilities-1"
+    bucket = "<BUCKET>"
     db_path = "scanner_db"
-    region = "us-east-1"
-    endpoint = "s3.us-east-1.amazonaws.com"
+    region = "<REGION>"
+    endpoint = "s3.<REGION>.amazonaws.com"
 
 metadata:
   name: scanner-configmap

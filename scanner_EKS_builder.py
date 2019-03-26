@@ -91,6 +91,8 @@ def main():
                         CONTAINER_TAG = jdata[key]
                     elif key == 'VPC_STACK_NAME':
                         VPC_STACK_NAME = jdata[key]
+                    elif key == 'BUCKET':
+                        BUCKET = jdata[key]
         else:
             print("Configuration file %s does not exist" % configJSON)
             exit(1)
@@ -124,13 +126,13 @@ def main():
         while clusterName is None:
             clusterName = input("Enter clustername: ")
         
-        ''' The following don't (yet) have comand line overrides -- HOME, USER, VPC_STACK_NAME, AWSACCT, REGION '''
+        ''' The following don't (yet) have comand line overrides -- HOME, USER, VPC_STACK_NAME, BUCKET,  AWSACCT, REGION '''
         kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
                   'VERBOSE':verboseOn, 'DEBUG':debugOn, 
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
                   'VPC_STACK_NAME':VPC_STACK_NAME,
                   'CONTAINER_TAG':CONTAINER_TAG,
-                  'AWSACCT':AWSACCT,'REGION':awsRegion}
+                  'AWSACCT':AWSACCT,'REGION':awsRegion, 'BUCKET':BUCKET }
 
         # TODO error handling for missing values, **kwargs -- pretty print kwargs
         
@@ -341,13 +343,16 @@ def set_environ(kwargs):
         kwargs['HOME'] = '/root'
         os.environ['HOME'] = '/root'
     getAWScred() 
-    os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
-    os.environ['AWSACCT'] = kwargs['AWSACCT']
-    os.environ['REGION'] = kwargs['REGION']    
-    os.environ['NODESDESIRED'] = str(kwargs['NODESDESIRED'])
-    os.environ['MAXNODES'] = str(kwargs['MAXNODES'])
-    os.environ['VPC_STACK_NAME'] = kwargs['VPC_STACK_NAME']
-    os.environ['CONTAINER_TAG'] = kwargs['CONTAINER_TAG']
+    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','NODESDESIRED','MAXNODES','VPC_STACK_NAME','CONTAINER_TAG','BUCKET']:
+        os.environ[envvar] = kwargs[envvar]
+#     os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
+#     os.environ['AWSACCT'] = kwargs['AWSACCT']
+#     os.environ['REGION'] = kwargs['REGION']    
+#     os.environ['NODESDESIRED'] = str(kwargs['NODESDESIRED'])
+#     os.environ['MAXNODES'] = str(kwargs['MAXNODES'])
+#     os.environ['VPC_STACK_NAME'] = kwargs['VPC_STACK_NAME']
+#     os.environ['CONTAINER_TAG'] = kwargs['CONTAINER_TAG']
+#     os.environ['BUCKET'] = kwargs['BUCKET']
 
     # Get paths right
     os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this

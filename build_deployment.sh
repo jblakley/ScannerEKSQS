@@ -16,17 +16,8 @@ test -z "$AWS_SECRET_ACCESS_KEY" && \
 test -z "$AWS_SECRET_ACCESS_KEY" && \
 	(echo "Could not find AWS_SECRET_ACCESS_KEY";exit 1)
 	
-test -z "$REGION" && \
-	REGION=us-east-1
-
-test -z "$CONTAINER_TAG" && \
-	export CONTAINER_TAG=jpablomch/scanner-aws:latest
-
-# Create the number of replicas == number of k8s nodes minus 1 for the master
-#test -z "$NODESDESIRED" && \
-#	NODESDESIRED=$(kubectl get nodes -o json| jq -r '.items[].status.addresses[] | select(.type=="InternalIP") | .address'|wc|awk '{print $1}')
-#REPLICAS=$(expr $NODESDESIRED - 1)
-#echo "Creating $REPLICAS of worker node"
+test -z "$REGION" && REGION=us-east-1
+test -z "$CONTAINER_TAG" && export CONTAINER_TAG=jpablomch/scanner-aws:latest
 
 ### 1. Check if container repo exists
 aws ecr describe-repositories --repository-names scanner
@@ -35,8 +26,7 @@ if [ $REG_EXISTS -ne 0 ]; then
     # Create container repo
     aws ecr create-repository --repository-name scanner
 fi
-#	echo $AWS_ACCESS_KEY_ID
-#	echo $AWS_SECRET_ACCESS_KEY
+
 # Get container repo URI
 REPO_URI=$(aws ecr describe-repositories --repository-names scanner | jq -r '.repositories[0].repositoryUri')
 echo $REPO_URI

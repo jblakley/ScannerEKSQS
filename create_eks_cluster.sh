@@ -20,6 +20,7 @@ test -z "$NODESDESIRED" && export NODESDESIRED=3
 test -z "$AMI" && export AMI=ami-dea4d5a1
 test -z "$KEYNAME" && export KEYNAME=ISTC-VCS1-JRB
 test -z "$REGION" && export REGION=us-east-1
+test -z "$BUCKET" && export BUCKET=s3-scanner-utilities-1
 
 echo "MAXNODES=$MAXNODES NODESDESIRED=$NODESDESIRED"
 
@@ -128,8 +129,9 @@ kubectl create clusterrolebinding kube-system-default-admin \
   --serviceaccount=default:default
 
 ### 6. Tell master and worker pods about db path
-sed "s|<CLUSTER_NAME>|$CLUSTER_NAME|g" scanner-config.yaml.template > scanner-config.yml
+sed "s|<BUCKET>|$BUCKET|g;s|<REGION>|$REGION|g" scanner-config.yaml.template > scanner-config.yml
 kubectl apply -f scanner-config.yml
+sed "s|<BUCKET>|$BUCKET|g;s|<REGION>|$REGION|g" config.toml.template > config.toml
 
 ### 7. Add dashboard (By Blakley)
 #kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard.yaml
