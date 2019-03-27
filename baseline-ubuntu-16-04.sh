@@ -33,4 +33,4 @@ cd ~/git
 test -d HermesPeak || git clone https://github.com/jblakley/HermesPeak
 
 cd $QSHOME
-python3 ./scanner_EKS_builder.py -n $DESIRENODES -m $MAXNODES -c $CLUSTER_NAME -S --create --build --deploy
+python3 ./scanner_EKS_builder.py -n $DESIRENODES -m $MAXNODES -c $CLUSTER_NAME --staging
