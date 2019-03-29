@@ -93,6 +93,8 @@ def main():
                         VPC_STACK_NAME = jdata[key]
                     elif key == 'BUCKET':
                         BUCKET = jdata[key]
+                    elif key == 'KEYNAME':
+                        KEYNAME = jdata[key]
         else:
             print("Configuration file %s does not exist" % configJSON)
             exit(1)
@@ -132,7 +134,7 @@ def main():
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
                   'VPC_STACK_NAME':VPC_STACK_NAME,
                   'CONTAINER_TAG':CONTAINER_TAG,
-                  'AWSACCT':AWSACCT,'REGION':awsRegion, 'BUCKET':BUCKET }
+                  'AWSACCT':AWSACCT,'REGION':awsRegion, 'BUCKET':BUCKET, 'KEYNAME':KEYNAME }
 
         # TODO error handling for missing values, **kwargs -- pretty print kwargs
         
@@ -343,18 +345,10 @@ def set_environ(kwargs):
         kwargs['HOME'] = '/root'
         os.environ['HOME'] = '/root'
     getAWScred() 
-    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','VPC_STACK_NAME','CONTAINER_TAG','BUCKET']:
+    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','VPC_STACK_NAME','CONTAINER_TAG','BUCKET','KEYNAME']:
         os.environ[envvar] = kwargs[envvar]
     for envvar in ['NODESDESIRED','MAXNODES']:
         os.environ[envvar] = str(kwargs[envvar])
-#     os.environ['CLUSTER_NAME'] = kwargs['CLUSTER_NAME']
-#     os.environ['AWSACCT'] = kwargs['AWSACCT']
-#     os.environ['REGION'] = kwargs['REGION']    
-#     os.environ['NODESDESIRED'] = str(kwargs['NODESDESIRED'])
-#     os.environ['MAXNODES'] = str(kwargs['MAXNODES'])
-#     os.environ['VPC_STACK_NAME'] = kwargs['VPC_STACK_NAME']
-#     os.environ['CONTAINER_TAG'] = kwargs['CONTAINER_TAG']
-#     os.environ['BUCKET'] = kwargs['BUCKET']
 
     # Get paths right
     os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
