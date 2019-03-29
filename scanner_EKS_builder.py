@@ -316,12 +316,38 @@ def getEKSClusters():
         shell=True).strip().decode('utf-8')
     return clusters
 
+def set_environ(kwargs):
+    # Fix for root with bad home (ubuntu 16.04)
+    if kwargs['USER'] == 'root' and kwargs['HOME'] != '/root':
+        kwargs['HOME'] = '/root'
+        os.environ['HOME'] = '/root'
+    getAWScred() 
+    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','VPC_STACK_NAME','CONTAINER_TAG','BUCKET','KEYNAME']:
+        os.environ[envvar] = kwargs[envvar]
+    for envvar in ['NODESDESIRED','MAXNODES']:
+        os.environ[envvar] = str(kwargs[envvar])
+
+    # Get paths right
+    os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
+    os.environ['PATH'] = os.environ['PATH'] + ":."
+
 def create_setK8SSenv(kwargs):
     fname = "setK8SSenv.sh"
     filed = open(fname,"w")
     for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTER_NAME']:
         filed.write("export %s=%s\n" % (evar,os.environ[evar]))
     filed.close()
+
+def create_arn(kwargs):
+    ''' See if arn exists. If not create '''
+    ARN = "arn:aws:iam::%s:role/eksServiceRole" % kwargs[AWSACCT]
+    arns = sp.check_output(
+        '''
+        aws iam list-roles|jq -q '.Roles[].Arn'
+        ''',
+        shell=True).strip().decode('utf-8')
+    pass
+
 def getDBGSTR():
     if debugOn:
         return "-vx"
@@ -338,21 +364,6 @@ def wait_bar(seconds):
 
 def oscmd(cmdstr):
     os.system(cmdstr)
-
-def set_environ(kwargs):
-    # Fix for root with bad home (ubuntu 16.04)
-    if kwargs['USER'] == 'root' and kwargs['HOME'] != '/root':
-        kwargs['HOME'] = '/root'
-        os.environ['HOME'] = '/root'
-    getAWScred() 
-    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','VPC_STACK_NAME','CONTAINER_TAG','BUCKET','KEYNAME']:
-        os.environ[envvar] = kwargs[envvar]
-    for envvar in ['NODESDESIRED','MAXNODES']:
-        os.environ[envvar] = str(kwargs[envvar])
-
-    # Get paths right
-    os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
-    os.environ['PATH'] = os.environ['PATH'] + ":."
 
 
 def cmd(cmdstr):
