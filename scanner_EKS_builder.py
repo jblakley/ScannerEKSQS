@@ -341,13 +341,14 @@ def create_setK8SSenv(kwargs):
 def create_arn(kwargs):
     ''' See if arn exists. If not create '''
     ARN = "arn:aws:iam::%s:role/eksServiceRole" % kwargs['AWSACCT']
-#    ARN = "arn:aws:iam::539776273521:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport"
-    arns = cmd("aws iam list-roles|jq -r '.Roles[].Arn'")
-    for TMPARN in arns: # for some reason, normal "if ARN in" is not working
-        if TMPARN == ARN:
-            print("ARN %s exists" % ARN)
-            return True
-    ''' arn doesn't exist -- create it '''
+#     ARN = "arn:aws:iam::539776273521:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport"
+    strcmd = "aws iam list-roles|jq -r '.Roles[].Arn'|grep '%s'" % ARN
+    arn = cmd(strcmd)
+    if ARN in arn:
+        print("ARN %s exists" % ARN)
+        return True
+    ''' ARN does not exist -- create it '''
+    
     pass
 
 def getDBGSTR():
