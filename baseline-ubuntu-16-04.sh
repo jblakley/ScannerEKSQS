@@ -1,6 +1,7 @@
 ## Configure Ubuntu 16.04 Instance AWS for EKS and Scanner
 ## Must be root
-apt install python3-pip
+apt update
+apt install python3-pip jq -y
 pip3 install tqdm
 
 test -z "$1" && export CLUSTER_NAME=jrbk8sQScluster # DEFAULT
