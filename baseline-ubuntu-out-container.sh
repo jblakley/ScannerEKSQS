@@ -36,3 +36,6 @@ test -d HermesPeak || git clone https://github.com/jblakley/HermesPeak
 cd $QSHOME
 
 # Start Container ... TODO
+CONTAINER_TAG=$(grep "CONTAINER_TAG" seb_config.json|cut -f 2 -d ":"|sed 's/\"//')
+docker pull $CONTAINER_TAG
+docker run -it $CONTAINER_TAG bash
