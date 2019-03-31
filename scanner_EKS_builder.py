@@ -23,6 +23,7 @@ def main():
     
     maxNodes = 4
     nodesDesired = 2
+    KEYNAME=""
     
     try:
         print("# Start Cluster Builder")
@@ -143,7 +144,8 @@ def main():
         ''' End Setup '''
 
         ''' App Run '''
-        create_arn(kwargs)
+        if not check_arn(kwargs):
+            exit(1)
         if deleteCluster is True:
             delete_cluster(kwargs)
             sys.exit(0)
@@ -216,7 +218,7 @@ def wait_for_cluster():
             if is_cluster_running():
                 break
             wait_bar(SETTLETIME)
-#     print()
+    oscmd('kubectl get nodes')
 def is_cluster_running():
     oscmd('kubectl get nodes')
     nodessall = int(sp.check_output(
@@ -224,9 +226,11 @@ def is_cluster_running():
     kubectl get nodes|grep -v "NAME"|wc|awk '{print $1}'
     ''',
     shell=True).strip().decode('utf-8'))
+    if nodessall == 0:
+        return False
     nodesrunning = int(sp.check_output(
     '''
-    kubectl get nodes|egrep "Ready"|wc|awk '{print $1}'
+    kubectl get nodes|egrep "Ready"|egrep -v "NotReady"|wc|awk '{print $1}'
     ''',
     shell=True).strip().decode('utf-8'))
     if nodessall == nodesrunning:
@@ -241,6 +245,7 @@ def wait_for_deployment():
             if is_deployment_running():
                 break            
             wait_bar(SETTLETIME)
+    oscmd('kubectl get pods')
 def is_deployment_running():
     oscmd('kubectl get pods')
     workerpodsall = int(sp.check_output(
@@ -338,7 +343,7 @@ def create_setK8SSenv(kwargs):
         filed.write("export %s=%s\n" % (evar,os.environ[evar]))
     filed.close()
 
-def create_arn(kwargs):
+def check_arn(kwargs):
     ''' See if arn exists. If not create '''
     ARN = "arn:aws:iam::%s:role/eksServiceRole" % kwargs['AWSACCT']
 #     ARN = "arn:aws:iam::539776273521:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport"
@@ -348,8 +353,8 @@ def create_arn(kwargs):
         print("ARN %s exists" % ARN)
         return True
     ''' ARN does not exist -- create it '''
-    
-    pass
+    print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account" % ARN)
+    return False
 
 def getDBGSTR():
     if debugOn:

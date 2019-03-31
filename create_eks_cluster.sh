@@ -60,9 +60,10 @@ aws eks create-cluster --name $CLUSTER_NAME \
 echo "Waiting for EKS cluster to be created... (may take a while)"
 COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
 while ! [ "$COND" = "\"ACTIVE\"" ]; do
-  sleep 5
+  sleep 20
   COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
-  echo "Cluster $CLUSTER_NAME Status is $COND"
+  TS=$(date '+%H:%M:%S')
+  echo "$TS Cluster $CLUSTER_NAME Status is $COND"
 done
 echo "EKS cluster created."
 
