@@ -96,6 +96,8 @@ def main():
                         BUCKET = jdata[key]
                     elif key == 'KEYNAME':
                         KEYNAME = jdata[key]
+                    elif key == 'INSTANCE_TYPE':
+                        INSTANCE_TYPE = jdata[key]                        
         else:
             print("Configuration file %s does not exist" % configJSON)
             exit(1)
@@ -135,7 +137,8 @@ def main():
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
                   'VPC_STACK_NAME':VPC_STACK_NAME,
                   'CONTAINER_TAG':CONTAINER_TAG,
-                  'AWSACCT':AWSACCT,'REGION':awsRegion, 'BUCKET':BUCKET, 'KEYNAME':KEYNAME }
+                  'AWSACCT':AWSACCT,'REGION':awsRegion, 'BUCKET':BUCKET, 'KEYNAME':KEYNAME,
+                  'INSTANCE_TYPE':INSTANCE_TYPE }
 
         # TODO error handling for missing values, **kwargs -- pretty print kwargs
         
@@ -327,7 +330,7 @@ def set_environ(kwargs):
         kwargs['HOME'] = '/root'
         os.environ['HOME'] = '/root'
     getAWScred() 
-    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','VPC_STACK_NAME','CONTAINER_TAG','BUCKET','KEYNAME']:
+    for envvar in ['CLUSTER_NAME','AWSACCT','REGION','VPC_STACK_NAME','CONTAINER_TAG','BUCKET','KEYNAME','INSTANCE_TYPE']:
         os.environ[envvar] = kwargs[envvar]
     for envvar in ['NODESDESIRED','MAXNODES']:
         os.environ[envvar] = str(kwargs[envvar])
