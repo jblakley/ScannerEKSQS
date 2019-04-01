@@ -9,10 +9,6 @@ test -n "$1" && export CLUSTER_NAME=$1 # OVERRIDE
 
 QSHOME=~/git/HermesPeak/ScannerPG/EKSScannerQS
 
-DESIRENODES=2
-MAXNODES=2
-echo CLUSTER_NAME=$CLUSTER_NAME
-
 # AWS Tools
 apt update &&
 apt-get -y install --upgrade python3-botocore python3-dateutil python3-docutils python3-jmespath python3-roman docutils-common &&
@@ -34,4 +30,4 @@ cd ~/git
 test -d HermesPeak || git clone https://github.com/jblakley/HermesPeak
 
 cd $QSHOME
-python3 ./scanner_EKS_builder.py -n $DESIRENODES -m $MAXNODES -c $CLUSTER_NAME --staging
+python3 ./scanner_EKS_builder.py --staging
