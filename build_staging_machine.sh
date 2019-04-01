@@ -58,8 +58,10 @@ sudo apt-get install -y \
 
 pip3 install numpy
 
+GITVERSION=42001ef1f96512009500f7a6c29993f182afed39
 git clone https://github.com/scanner-research/scanner.git
 cd scanner
+git checkout $GITVERSION
 sudo bash ./deps.sh -a --prefix /usr/local
 mkdir build
 cd build
