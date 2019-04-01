@@ -17,6 +17,7 @@ def main():
     AWSACCT = "AWSACCT_DEFAULT"
     CONFIGFILE = "seb_config.json"
     CONTAINER_TAG = "scannerresearch/scanner:cpu-latest"
+    INSTANCE_TYPE = "c4.8xlarge"
     
     global debugOn
     global verboseOn
