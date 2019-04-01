@@ -352,7 +352,7 @@ def check_arn(kwargs):
     ''' See if arn exists. If not create '''
     ARN = "arn:aws:iam::%s:role/eksServiceRole" % kwargs['AWSACCT']
 #     ARN = "arn:aws:iam::539776273521:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport"
-    strcmd = "aws iam list-roles|jq -r '.Roles[].Arn'|grep '%s'" % ARN
+    strcmd = "aws iam list-roles|jq -r '.Roles[].Arn'|grep eksServiceRole"
     arn = cmd(strcmd)
     if ARN in arn:
         print("ARN %s exists" % ARN)
