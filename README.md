@@ -7,9 +7,11 @@ Prerequisites:
 From http://github.com/jblakley/HermesPeak/ScannerPG/EKSScannerQS
 Run the following on your brand new Ubuntu 16.04 instance. Download the file and run it. You don't need to clone but OK if you do.
 You will need your AWS credentials. You must be root.
+
 ```
 bash baseline-ubuntu-16-04.sh 
 ```
+
 This should clone the repo above into ~/git and builds the instance into a staging machine.
 
 At the end, your machine is a staging machine with the quickstart installed.
