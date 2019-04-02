@@ -1,29 +1,24 @@
+Prerequisites: 
+
+1. Create a role for EKS if your AWS account does not have one. From AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next. Name the role 'eksServiceRole'. This only needs to be done one time for the account.
+
+2. Have your AWS account information and credentials at hand. 
+
 From http://github.com/jblakley/HermesPeak/ScannerPG/EKSScannerQS
 Run the following on your brand new Ubuntu 16.04 instance. Download the file and run it. You don't need to clone but OK if you do.
 You will need your AWS credentials. You must be root.
+
 ```
-bash baseline-ubuntu-16-04.sh <your cluster name>
+bash baseline-ubuntu-16-04.sh 
 ```
+
 This should clone the repo above into ~/git and builds the instance into a staging machine.
 
 At the end, your machine is a staging machine with the quickstart installed.
 ```
 cd ~/git/HermesPeak/ScannerPG/EKSScannerQS # you may already be here at the end of your build
 ```
-Now configure seb_config.json for your specific information:
-It looks like this by default:
-```
-{
-	"maxNodes":2,
-	"nodesDesired":2,
-	"region":"us-east-1",
-	"account":"601041732504",
-	"clusterName":"jrbQStest2",
-	"VPC_STACK_NAME":"eks-vpc",
-	"CONTAINER_TAG":"jpablomch/scanner-aws:latest",
-	"BUCKET":"s3-scanner-utilities-1"
-}
-```
+
 To run the quickstart to create a cluster, build the deployment, deploy it and run a smoke test:
 ```
 python3 scanner_EKS_builder.py -c <CLUSTER_NAME> --create --build --deploy

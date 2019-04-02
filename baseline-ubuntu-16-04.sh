@@ -1,11 +1,9 @@
+#!/usr/bin/env bash
 ## Configure Ubuntu 16.04 Instance AWS for EKS and Scanner
 ## Must be root
 apt update
 apt install python3-pip jq -y
 pip3 install tqdm
-
-test -z "$1" && export CLUSTER_NAME=jrbk8sQScluster # DEFAULT
-test -n "$1" && export CLUSTER_NAME=$1 # OVERRIDE
 
 QSHOME=~/git/HermesPeak/ScannerPG/EKSScannerQS
 
@@ -30,4 +28,17 @@ cd ~/git
 test -d HermesPeak || git clone https://github.com/jblakley/HermesPeak
 
 cd $QSHOME
+
+# AWS Account to create seb configuration
+read -p "Enter your AWS account number: " AWS_ACC
+# For now, we are using this for max and desired nodes.
+read -p "Enter the number of nodes [2]: " NODE_NUM
+NODE_NUM=${NODE_NUM:-2}
+read -p "Enter your region [us-east-1]: " AWS_REGION
+AWS_REGION=${AWS_REGION:-"us-east-1"}
+read -p "Enter the name of the cluster : " CLUSTER_NAME
+read -p "Enter your S3 bucket: " AWS_BUCKET
+
+printf "{\n\t\"maxNodes\": ${NODE_NUM},\n\t\"nodesDesired\": ${NODE_NUM},\n\t\"region\":\"${AWS_REGION}\",\n\t\"account\":\"${AWS_ACC}\",\n\t\"clusterName\":\"${CLUSTER_NAME}\",\n\t\"VPC_STACK_NAME\":\"eks-vpc\",\n\t\"CONTAINER_TAG\":\"jpablomch/scanner-aws:latest\",\n\t\"BUCKET\":\"s3-scanner-utilities-1\"\n}" > seb_config.json
+
 python3 ./scanner_EKS_builder.py --staging
