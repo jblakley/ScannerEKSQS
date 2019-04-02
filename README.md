@@ -1,8 +1,14 @@
 Prerequisites: 
 
-1. Create a role for EKS if your AWS account does not have one. From AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next. Name the role 'eksServiceRole'. This only needs to be done one time for the account.
+ 1. Create a role for EKS if your AWS account does not have one. From AWS IAM console
 
-2. Have your AWS account information and credentials at hand. 
+```
+Roles-->Create Role-->EKS-->Permissions-->Next-->Next. 
+```
+
+Name the role 'eksServiceRole'. This only needs to be done one time for the account.
+
+ 2. Have your AWS account information and credentials at hand. 
 
 From http://github.com/jblakley/HermesPeak/ScannerPG/EKSScannerQS
 Run the following on your brand new Ubuntu 16.04 instance. Download the file and run it. You don't need to clone but OK if you do.
@@ -15,11 +21,13 @@ bash baseline-ubuntu-16-04.sh
 This should clone the repo above into ~/git and builds the instance into a staging machine.
 
 At the end, your machine is a staging machine with the quickstart installed.
+
 ```
 cd ~/git/HermesPeak/ScannerPG/EKSScannerQS # you may already be here at the end of your build
 ```
 
 To run the quickstart to create a cluster, build the deployment, deploy it and run a smoke test:
+
 ```
 python3 scanner_EKS_builder.py -c <CLUSTER_NAME> --create --build --deploy
 ```
@@ -49,7 +57,9 @@ If something goes wrong, the --debug option is pretty useful.
 May go without saying but you can't build and deploy before creating and you can't deploy before building once.
 
 Once you've run the quickstart all the way through, run:
+
 ```
 . ./setk8SSenv.sh
 ```
+
 That will let you use your EKS Scanner cluster as you normally would.
