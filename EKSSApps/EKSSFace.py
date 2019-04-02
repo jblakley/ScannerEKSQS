@@ -1,17 +1,16 @@
 from scannerpy import Database, DeviceType, Job
-from scannerpy.stdlib import readers
-
-import numpy as np
+from scannerpy.stdlib import pipelines
+import subprocess
 import cv2
 import sys
 import os.path
-import subprocess as sp
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../..')
+# import util
 
+movie_path = 'star_wars_heros.mp4'
 
-example_video_path = 'star_wars_heros.mp4'
-
-if not os.path.isfile(example_video_path):
-    print("File does not exist: %s" % example_video_path)
+if not os.path.isfile(movie_path):
+    print("File does not exist: %s" % movie_path)
     outp = sp.check_output(
         '''
         wget https://storage.googleapis.com/scanner-data/tutorial_assets/star_wars_heros.mp4
@@ -19,9 +18,8 @@ if not os.path.isfile(example_video_path):
         shell=True).strip().decode('utf-8')
 
 else:
-    print("Using: %s" % example_video_path)
+    print("Using: %s" % movie_path)
     
-
 print('Finding master IP...')
 ip = sp.check_output(
     '''
@@ -48,32 +46,43 @@ with open('config.toml', 'w') as f:
         shell=True).strip().decode('utf-8')
     f.write(config_text)
 
-print('Connecting to Scanner database...')
+    
+print('Detecting faces in movie {}'.format(movie_path))
+movie_name = os.path.splitext(os.path.basename(movie_path))[0]
+
 db = Database(
     master=master,
     start_cluster=False,
     config_path='./config.toml',
     grpc_timeout=60)
 
-print('Running Scanner job...')
-# example_video_path = 'star_wars_heros.mp4'
-
-
+print('Ingesting video into Scanner ...')
 [input_table], _ = db.ingest_videos(
-    [('example', example_video_path)], force=True, inplace=True)
+    [(movie_name, movie_path)], force=True)
 
-print(db.summarize())
+sampler = db.streams.All
+sampler_args = {}
 
+print('Detecting faces...')
+[bboxes_table] = pipelines.detect_faces(
+    db, [input_table.column('frame')],
+    sampler,
+    sampler_args,
+    movie_name + '_bboxes')
+
+print('Drawing faces onto video...')
 frame = db.sources.FrameColumn()
-r_frame = db.ops.Resize(frame=frame, width=320, height=240)
-output_op = db.sinks.Column(columns={'frame': r_frame})
+sampled_frame = sampler(frame)
+bboxes = db.sources.Column()
+out_frame = db.ops.DrawBox(frame=sampled_frame, bboxes=bboxes)
+output = db.sinks.Column(columns={'frame': out_frame})
 job = Job(op_args={
-    frame: db.table('example').column('frame'),
-    output_op: 'example_frame'
+    frame: input_table.column('frame'),
+    sampled_frame: sampler_args,
+    bboxes: bboxes_table.column('bboxes'),
+    output: movie_name + '_bboxes_overlay',
 })
+[out_table] = db.run(output=output, jobs=[job], force=True)
+out_table.column('frame').save_mp4(movie_name + '_faces')
 
-output_tables = db.run(output=output_op, jobs=[job], force=True)
-
-output_tables[0].column('frame').save_mp4('resized_video')
-
-print('Complete!')
+print('Successfully generated {:s}_faces.mp4'.format(movie_name))

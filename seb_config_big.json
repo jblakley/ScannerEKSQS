@@ -1,0 +1,11 @@
+{
+	"maxNodes":6,
+	"nodesDesired":6,
+	"region":"us-east-1",
+	"account":"601041732504",
+	"clusterName":"jrbQSbig2",
+	"VPC_STACK_NAME":"eks-vpc",
+	"CONTAINER_TAG":"jpablomch/scanner-aws:latest",
+	"BUCKET":"s3-scanner-utilities-1",
+	"INSTANCE_TYPE":"c5.9xlarge"
+}
