@@ -37,7 +37,9 @@ def main():
         parser.add_option("-n", "--nodesdesired", dest="nodesdesired",
                       help="use INT as number of desired nodes in the cluster", metavar="INT")
         parser.add_option("-m", "--maxnodes", dest="maxnodes",
-                      help="use INT as number of maximum nodes in the cluster # TODO", metavar="INT")
+                      help="use INT as number of maximum nodes in the cluster", metavar="INT")
+        parser.add_option("-i", "--instancetype", dest="instancetype",
+                      help="Use instance type INSTANCE in cluster", metavar="INSTANCE")
         parser.add_option("-C", "--create",
                       action="store_true", dest="create", default=False,
                       help="Create the cluster")
@@ -52,7 +54,7 @@ def main():
                       help="Make this instance a staging machine")
         parser.add_option( "-e", "--delete",
                       action="store_true", dest="delete", default=False,
-                      help="delete the cluster TODO")
+                      help="delete the cluster")
         parser.add_option("-j", "--jsonconfig", dest="jsonconfig",
                       help="use NAME as json configuration file", metavar="NAME")
         parser.add_option("-d", "--debug",
@@ -127,6 +129,8 @@ def main():
         if nodesDesired < 2:
             print ("Nodesdesired (%i) must be >1" % (nodesDesired))
             exit(1)
+        if options.instancetype is not None:
+            INSTANCE_TYPE = options.instancetype
 
         if options.clustername is not None:
             clusterName = options.clustername
