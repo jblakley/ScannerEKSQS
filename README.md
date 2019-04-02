@@ -23,36 +23,15 @@ This should clone the repo above into ~/git and builds the instance into a stagi
 At the end, your machine is a staging machine with the quickstart installed.
 
 ```
-cd ~/git/HermesPeak/ScannerPG/EKSScannerQS # you may already be here at the end of your build
+cd ~/git/HermesPeak/ScannerPG/EKSScannerQS
 ```
 
 To run the quickstart to create a cluster, build the deployment, deploy it and run a smoke test:
 
 ```
-python3 scanner_EKS_builder.py -c <CLUSTER_NAME> --create --build --deploy
+./scanner_EKS_builder.py --create --build --deploy
 ```
 
-```
-Usage: scanner_EKS_builder.py [options]
-Options:
-  -h, --help            show this help message and exit
-  -c NAME, --clustername=NAME
-                        use NAME as clustername
-  -n INT, --nodesdesired=INT
-                        use INT as number of desired nodes in the cluster
-  -m INT, --maxnodes=INT
-                        use INT as number of maximum nodes in the cluster 
-  -C, --create          Create the cluster
-  -B, --build           Build the deployment for the cluster
-  -D, --deploy          Build and Deploy the cluster
-  -S, --staging         Make this instance a staging machine
-  -e, --delete          delete the cluster
-  -j NAME, --jsonconfig=NAME
-                        use NAME as json configuration file
-  -d, --debug           Print debugging information
-  -v, --verbose         Print detailed information #TODO
-```
-If something goes wrong, the --debug option is pretty useful.
 
 May go without saying but you can't build and deploy before creating and you can't deploy before building once.
 
@@ -64,6 +43,32 @@ Once you've run the quickstart all the way through, run:
 
 That will let you use your EKS Scanner cluster as you normally would.
 
+Command Line Options:
+
+```
+Usage: scanner_EKS_builder.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -c NAME, --clustername=NAME
+                        use NAME as clustername
+  -n INT, --nodesdesired=INT
+                        use INT as number of desired nodes in the cluster
+  -m INT, --maxnodes=INT
+                        use INT as number of maximum nodes in the cluster
+  -i INSTANCE, --instancetype=INSTANCE
+                        Use instance type INSTANCE in cluster
+  -C, --create          Create the cluster
+  -B, --build           Build the deployment for the cluster
+  -D, --deploy          Build and Deploy the cluster
+  -S, --staging         Make this instance a staging machine
+  -e, --delete          delete the cluster
+  -j NAME, --jsonconfig=NAME
+                        use NAME as json configuration file
+  -d, --debug           Print debugging information
+  -v, --verbose         Print detailed information #TODO
+```
+If something goes wrong, the --debug option is pretty useful.
 
 The configuration file supports the following options:
 
