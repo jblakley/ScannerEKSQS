@@ -63,3 +63,21 @@ Once you've run the quickstart all the way through, run:
 ```
 
 That will let you use your EKS Scanner cluster as you normally would.
+
+
+The configuration file supports the following options:
+
+```
+{
+	"maxNodes":<INT -- maximum number of nodes for the EKS cluster>,
+	"nodesDesired":<INT -- desired number of nodes for the EKS cluster>,
+	"region":"<AWS Region>",
+	"account":"<AWS Account Number>",
+	"clusterName":"<Name for the cluster>",
+	"VPC_STACK_NAME":"<VPC of the staging machine>",
+	"CONTAINER_TAG":"<Container Tag>",
+	"BUCKET":"<AWS Bucket Name for ScannerDB and other>"
+	"INSTANCE_TYPE":<AWS instance type for master and worker nodes>"
+	"KEYNAME":"<Name of AWS SSH Key>"
+}
+```
