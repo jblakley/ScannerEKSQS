@@ -118,6 +118,8 @@ def main():
 
         
         ''' Command line overrides '''
+        ''' The following don't (yet) have comand line overrides -- HOME, USER, VPC_STACK_NAME, BUCKET,  AWSACCT, REGION '''
+
         if options.maxnodes is not None:
             maxNodes = int(options.maxnodes)
         if options.nodesdesired is not None:     
@@ -134,10 +136,11 @@ def main():
 
         if options.clustername is not None:
             clusterName = options.clustername
+        
+        ''' Complete any required options by user input '''
         while clusterName is None:
             clusterName = input("Enter clustername: ")
         
-        ''' The following don't (yet) have comand line overrides -- HOME, USER, VPC_STACK_NAME, BUCKET,  AWSACCT, REGION '''
         kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
                   'VERBOSE':verboseOn, 'DEBUG':debugOn, 
                   'HOME':os.environ['HOME'], 'USER':os.environ['USER'],
@@ -146,8 +149,7 @@ def main():
                   'AWSACCT':AWSACCT,'REGION':awsRegion, 'BUCKET':BUCKET, 'KEYNAME':KEYNAME,
                   'INSTANCE_TYPE':INSTANCE_TYPE }
 
-        # TODO error handling for missing values, **kwargs -- pretty print kwargs
-        
+   
         set_environ(kwargs)
         
         ''' End Setup '''
@@ -160,6 +162,9 @@ def main():
             sys.exit(0)
         if buildStaging is True:
             build_staging_machine(kwargs)
+        if not createCluster and not buildDeployment and not deployCluster:
+            print("No other tasks to do -- exiting")
+            sys.exit(0)
 
         if createCluster is True:
             create_cluster(kwargs)
