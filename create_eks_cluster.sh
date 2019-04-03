@@ -11,7 +11,8 @@ if [ $# == 0 ]; then
 	test -z "$CLUSTER_NAME" && usage
 fi
 
-test -n "$1" && export CLUSTER_NAME=$1 
+test -n "$1" && export CLUSTER_NAME=$1
+test -n "$2" && export KEYNAME=$2  
 test -z "$VPC_STACK_NAME" && export VPC_STACK_NAME=eks-vpc
 test -z "$AWSACCT" && export AWSACCT=601041732504
 test -z "$INSTANCE_TYPE" && export INSTANCE_TYPE=c4.8xlarge

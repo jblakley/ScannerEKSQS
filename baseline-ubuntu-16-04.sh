@@ -38,7 +38,8 @@ read -p "Enter your region [us-east-1]: " AWS_REGION
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 read -p "Enter the name of the cluster : " CLUSTER_NAME
 read -p "Enter your S3 bucket: " AWS_BUCKET
+read -p "Enter keyname: " KEYNAME
 
-printf "{\n\t\"maxNodes\": ${NODE_NUM},\n\t\"nodesDesired\": ${NODE_NUM},\n\t\"region\":\"${AWS_REGION}\",\n\t\"account\":\"${AWS_ACC}\",\n\t\"clusterName\":\"${CLUSTER_NAME}\",\n\t\"VPC_STACK_NAME\":\"eks-vpc\",\n\t\"CONTAINER_TAG\":\"jpablomch/scanner-aws:latest\",\n\t\"BUCKET\":\"s3-scanner-utilities-1\"\n}" > seb_config.json
+printf "{\n\t\"maxNodes\": ${NODE_NUM},\n\t\"nodesDesired\": ${NODE_NUM},\n\t\"region\":\"${AWS_REGION}\",\n\t\"account\":\"${AWS_ACC}\",\n\t\"clusterName\":\"${CLUSTER_NAME}\",\n\t\"VPC_STACK_NAME\":\"eks-vpc\",\n\t\"CONTAINER_TAG\":\"jpablomch/scanner-aws:latest\",\n\t\"BUCKET\":\"${AWS_BUCKET}\",\n\t\"KEYNAME\":\"${KEYNAME}\"\n}" > seb_config.json
 
 python3 ./scanner_EKS_builder.py --staging
