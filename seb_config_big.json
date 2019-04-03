@@ -1,6 +1,6 @@
 {
-	"maxNodes":6,
-	"nodesDesired":6,
+	"maxNodes":5,
+	"nodesDesired":5,
 	"region":"us-east-1",
 	"account":"601041732504",
 	"clusterName":"jrbQSbig2",
