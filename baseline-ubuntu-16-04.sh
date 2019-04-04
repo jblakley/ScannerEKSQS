@@ -5,7 +5,7 @@ apt update
 apt install python3-pip jq -y
 pip3 install tqdm
 
-QSHOME=~/git/HermesPeak/ScannerPG/EKSScannerQS
+QSHOME=~/git/ScannerEKSQS
 
 # AWS Tools
 apt update &&
@@ -25,7 +25,7 @@ export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_access_key ~/.aws/credentials|awk
 
 test -d ~/git || mkdir ~/git
 cd ~/git
-test -d HermesPeak || git clone https://github.com/jblakley/HermesPeak
+test -d ScannerEKSQS || git clone https://github.com/jblakley/ScannerEKSQS
 
 cd $QSHOME
 
