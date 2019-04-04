@@ -207,7 +207,7 @@ def create_cluster(kwargs):
     kn = str(kwargs['KEYNAME'])
 
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
-    cmdstr = ("bash %s ./create_eks_cluster.sh %s %s %s" % (getDBGSTR(),cn, kn))
+    cmdstr = ("bash %s ./create_eks_cluster.sh %s %s" % (getDBGSTR(),cn, kn))
     oscmd(cmdstr)
     # Need to check for success TODO
 
