@@ -13,12 +13,15 @@ fi
 
 test -n "$1" && export CLUSTER_NAME=$1
 test -n "$2" && export KEYNAME=$2
+test -n "$3" && export REGION=$3
+test -n "$4" && export BUCKET=$4
 test -z "$VPC_STACK_NAME" && export VPC_STACK_NAME=eks-vpc
 test -z "$AWSACCT" && export AWSACCT=601041732504
 test -z "$INSTANCE_TYPE" && export INSTANCE_TYPE=c4.8xlarge
 test -z "$MAXNODES" && export MAXNODES=6
 test -z "$NODESDESIRED" && export NODESDESIRED=3
 test -z "$AMI" && export AMI=ami-dea4d5a1
+# Default values TODO: remove?
 test -z "$KEYNAME" && export KEYNAME=ISTC-VCS1-JRB
 test -z "$REGION" && export REGION=us-east-1
 test -z "$BUCKET" && export BUCKET=s3-scanner-utilities-1

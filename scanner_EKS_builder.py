@@ -205,9 +205,11 @@ def create_cluster(kwargs):
     os.environ['MAXNODES'] = nn
 
     kn = str(kwargs['KEYNAME'])
+    rn = str(kwargs['REGION'])
+    bk = str(kwargs['BUCKET'])
 
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
-    cmdstr = ("bash %s ./create_eks_cluster.sh %s %s" % (getDBGSTR(),cn, kn))
+    cmdstr = ("bash %s ./create_eks_cluster.sh %s %s %s %s" % (getDBGSTR(),cn, kn, rn, bk))
     oscmd(cmdstr)
     # Need to check for success TODO
 
