@@ -165,9 +165,10 @@ def main():
         if not createCluster and not buildDeployment and not deployCluster:
             print("No other tasks to do -- exiting")
             sys.exit(0)
-
         if createCluster is True:
-            create_cluster(kwargs)
+            if create_cluster(kwargs) != 0:
+                print("Cluster creation failure")
+                sys.exit(1)
         if not isEKSCluster(clusterName):
             print("No such cluster: %s -- exiting" % clusterName)
             sys.exit(1)
@@ -210,24 +211,24 @@ def create_cluster(kwargs):
 
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
     cmdstr = ("bash %s ./create_eks_cluster.sh %s %s %s %s" % (getDBGSTR(),cn, kn, rn, bk))
-    oscmd(cmdstr)
+    return oscmd(cmdstr)
     # Need to check for success TODO
 
 def build_deployment(kwargs):
     print("Deploying deployment for %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./build_deployment.sh" % getDBGSTR())
-    oscmd(cmdstr)
+    retcode = oscmd(cmdstr)
 
 def deploy_k8s(kwargs):
     print("Deploying cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./deploy.sh" % getDBGSTR())
-    oscmd(cmdstr)
+    return oscmd(cmdstr)
     # Need to check for success
 
 def delete_cluster(kwargs):
     print("Deleting cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./delete_eks_cluster.sh %s" % (getDBGSTR(), kwargs['CLUSTER_NAME']))
-    oscmd(cmdstr)
+    return oscmd(cmdstr)
 
 def wait_for_cluster():
     SETTLETIME = 30 # seconds
@@ -237,7 +238,7 @@ def wait_for_cluster():
             if is_cluster_running():
                 break
             wait_bar(SETTLETIME)
-    oscmd('kubectl get nodes')
+    return oscmd('kubectl get nodes')
 def is_cluster_running():
     oscmd('kubectl get nodes')
     nodessall = int(sp.check_output(
@@ -390,7 +391,7 @@ def wait_bar(seconds):
     print()
 
 def oscmd(cmdstr):
-    os.system(cmdstr)
+    return os.system(cmdstr) # return exit status
 
 
 def cmd(cmdstr):
