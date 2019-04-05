@@ -10,7 +10,7 @@ Name the role 'eksServiceRole'. This only needs to be done one time for the acco
 
  2. Have your AWS account information and credentials at hand. 
 
-From http://github.com/jblakley/HermesPeak/ScannerPG/EKSScannerQS
+From http://github.com/jblakley/ScannerEKSQS
 Run the following on your brand new Ubuntu 16.04 instance. Download the file and run it. You don't need to clone but OK if you do.
 You will need your AWS credentials. You must be root.
 
@@ -23,7 +23,7 @@ This should clone the repo above into ~/git and builds the instance into a stagi
 At the end, your machine is a staging machine with the quickstart installed.
 
 ```
-cd ~/git/HermesPeak/ScannerPG/EKSScannerQS
+cd ~/git/ScannerEKSQS
 ```
 
 To run the quickstart to create a cluster, build the deployment, deploy it and run a smoke test:
