@@ -14,8 +14,8 @@ SLEEPTIME = 10
 
 def main():
     ''' Default Parameters '''
-    VPC_STACK_NAME = "VPC_STACK_NAME_DEFAULT" 
-    AWSACCT = "AWSACCT_DEFAULT"
+    VPC_STACK_NAME = "" 
+    AWSACCT = ""
     CONFIGFILE = "seb_config.json"
     CONTAINER_TAG = "scannerresearch/scanner:cpu-latest"
     INSTANCE_TYPE = "c4.8xlarge"
@@ -166,9 +166,7 @@ def main():
             print("No other tasks to do -- exiting")
             sys.exit(0)
         if createCluster is True:
-            if create_cluster(kwargs) != 0:
-                print("Cluster creation failure")
-                sys.exit(1)
+            create_cluster(kwargs)
         if not isEKSCluster(clusterName):
             print("No such cluster: %s -- exiting" % clusterName)
             sys.exit(1)
@@ -194,7 +192,7 @@ def main():
 def build_staging_machine(kwargs):
     print("Building staging machine")
     cmdstr = ("bash %s ./build_staging_machine.sh" % getDBGSTR())
-    oscmd(cmdstr)   
+    retcode = oscmd(cmdstr)   
 def create_cluster(kwargs):
     # Need to check if cluster already exists TODO
     cn = kwargs['CLUSTER_NAME']
@@ -211,7 +209,7 @@ def create_cluster(kwargs):
 
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
     cmdstr = ("bash %s ./create_eks_cluster.sh %s %s %s %s" % (getDBGSTR(),cn, kn, rn, bk))
-    return oscmd(cmdstr)
+    retcode = oscmd(cmdstr)
     # Need to check for success TODO
 
 def build_deployment(kwargs):
@@ -222,13 +220,13 @@ def build_deployment(kwargs):
 def deploy_k8s(kwargs):
     print("Deploying cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./deploy.sh" % getDBGSTR())
-    return oscmd(cmdstr)
+    retcode = oscmd(cmdstr)
     # Need to check for success
 
 def delete_cluster(kwargs):
     print("Deleting cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./delete_eks_cluster.sh %s" % (getDBGSTR(), kwargs['CLUSTER_NAME']))
-    return oscmd(cmdstr)
+    retcode = oscmd(cmdstr)
 
 def wait_for_cluster():
     SETTLETIME = 30 # seconds
@@ -238,7 +236,7 @@ def wait_for_cluster():
             if is_cluster_running():
                 break
             wait_bar(SETTLETIME)
-    return oscmd('kubectl get nodes')
+    retcode = oscmd('kubectl get nodes')
 def is_cluster_running():
     oscmd('kubectl get nodes')
     nodessall = int(sp.check_output(
@@ -330,6 +328,10 @@ def getAWScred():
     pass
 def isEKSCluster(cname):
     if cname in getEKSClusters():
+        cmdstr = ("aws cloudformation describe-stacks|jq -r '.Stacks[] | select(.StackName == \"%s-workers\") | .StackStatus'") % cname
+        cmdout = cmd(cmdstr)
+        if cmdout is None or cmdout[0] != "CREATE_COMPLETE":
+            return False
         return True
     else:
         return False

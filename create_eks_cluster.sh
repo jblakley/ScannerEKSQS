@@ -5,23 +5,14 @@ function errorexit {
     exit 1
 }
 
-# Set up parameters -- if not set in environment, use default
+# Set up parameters -- if not set in environment, prompt to get them TODO
 
-#test -n "$1" && export CLUSTER_NAME=$1
-#test -n "$2" && export KEYNAME=$2
-#test -n "$3" && export REGION=$3
-#test -n "$4" && export BUCKET=$4
-test -z "$VPC_STACK_NAME" && export VPC_STACK_NAME=eks-vpc
-test -z "$AWSACCT" && export AWSACCT=601041732504
-test -z "$INSTANCE_TYPE" && export INSTANCE_TYPE=c4.8xlarge
-test -z "$MAXNODES" && export MAXNODES=6
-test -z "$NODESDESIRED" && export NODESDESIRED=3
 test -z "$AMI" && export AMI=$(aws ec2 describe-images --filters Name='name',Values='eks-worker-v20'|jq -r '.Images[].ImageId')
-test -z "$AMI" && export AMI=ami-dea4d5a1
-test -z "$KEYNAME" && export KEYNAME=ISTC-VCS1-JRB
-test -z "$BUCKET" && export BUCKET=s3-scanner-utilities-1
-test -z "$REGION" && export REGION=us-east-1
 
+for envvar in "VPC_STACK_NAME" "AWSACCT" "INSTANCE_TYPE" "MAXNODES" "NODESDESIRED" "AMI" "KEYNAME" "BUCKET" "REGION"
+do
+	test -z ${!envvar} && errorexit "${envvar} is not set"
+done
 
 # CHECK THE CLUSTER PARAMETERS ARE VALID
 # CHECK THE KEYNAME
@@ -71,8 +62,7 @@ COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
 while ! [ "$COND" = "\"ACTIVE\"" ]; do
   sleep 20
   COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
-  TS=$(date '+%H:%M:%S')
-  echo "$TS Cluster $CLUSTER_NAME Status is $COND"
+  echo "$(date '+%H:%M:%S') Cluster $CLUSTER_NAME Status is $COND"
 done
 echo "EKS cluster created."
 
@@ -114,12 +104,12 @@ aws cloudformation wait stack-create-complete --stack-name $CLUSTER_NAME-workers
 echo "EKS worker node group created."
 
 # CHECK FOR SUCCESSFUL STACK CREATION
-#STACK_STATUS=$(aws cloudformation describe-stacks|jq -r ".Stacks[] | select(.StackName == \"$CLUSTER_NAME-workers\") | .StackStatus")
-#echo "STACK_STATUS=$STACK_STATUS"
-#if [ "$STACK_STATUS != "CREATE_COMPLETE" ]
-#then
-#	errorexit "Stack Creation Failure: $STACK_STATUS"
-#fi
+STACK_STATUS=$(aws cloudformation describe-stacks|jq -r ".Stacks[] | select(.StackName == \"$CLUSTER_NAME-workers\") | .StackStatus")
+echo "STACK_STATUS=$STACK_STATUS"
+if ! [ "$STACK_STATUS = "CREATE_COMPLETE" ]
+then
+	errorexit "Stack Creation Failure: $STACK_STATUS"
+fi
 
 aws cloudformation describe-stacks --stack-name $CLUSTER_NAME-workers
 
