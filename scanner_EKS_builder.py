@@ -78,33 +78,33 @@ def main():
         if configJSON is None:
             configJSON = CONFIGFILE
         
-        if os.path.isfile(configJSON):
-            with open(configJSON) as jfile:
-                jdata = json.load(jfile)
-                for key in jdata.keys():
-                    if key == 'maxNodes':
-                        maxNodes = jdata[key]
-                    elif key == 'nodesDesired':
-                        nodesDesired = jdata[key]
-                    elif key == 'region':
-                        awsRegion = jdata[key]
-                    elif key == 'account':
-                        AWSACCT = jdata[key]                        
-                    elif key == 'clusterName':
-                        clusterName = jdata[key]
-                    elif key == 'CONTAINER_TAG':
-                        CONTAINER_TAG = jdata[key]
-                    elif key == 'VPC_STACK_NAME':
-                        VPC_STACK_NAME = jdata[key]
-                    elif key == 'BUCKET':
-                        BUCKET = jdata[key]
-                    elif key == 'KEYNAME':
-                        KEYNAME = jdata[key]
-                    elif key == 'INSTANCE_TYPE':
-                        INSTANCE_TYPE = jdata[key]                        
-        else:
-            print("Configuration file %s does not exist" % configJSON)
-            exit(1)
+        if not os.path.isfile(configJSON):
+            create_config(configJSON)
+            
+        with open(configJSON) as jfile:
+            jdata = json.load(jfile)
+            for key in jdata.keys():
+                if key == 'maxNodes':
+                    maxNodes = jdata[key]
+                elif key == 'nodesDesired':
+                    nodesDesired = jdata[key]
+                elif key == 'region':
+                    awsRegion = jdata[key]
+                elif key == 'account':
+                    AWSACCT = jdata[key]                        
+                elif key == 'clusterName':
+                    clusterName = jdata[key]
+                elif key == 'CONTAINER_TAG':
+                    CONTAINER_TAG = jdata[key]
+                elif key == 'VPC_STACK_NAME':
+                    VPC_STACK_NAME = jdata[key]
+                elif key == 'BUCKET':
+                    BUCKET = jdata[key]
+                elif key == 'KEYNAME':
+                    KEYNAME = jdata[key]
+                elif key == 'INSTANCE_TYPE':
+                    INSTANCE_TYPE = jdata[key]                        
+
         
         ''' Only set on command line '''
         verboseOn = options.verbose
@@ -204,7 +204,7 @@ def create_cluster(kwargs):
     nn = str(kwargs['MAXNODES'])
     os.environ['MAXNODES'] = nn
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
-    cmdstr = ("bash %s ./create_eks_cluster.sh" % getDBGSTR)
+    cmdstr = ("bash %s ./create_eks_cluster.sh" % getDBGSTR())
     retcode = oscmd(cmdstr)    # Need to check for success TODO
 
 def build_deployment(kwargs):
@@ -227,7 +227,41 @@ def run_smoke(kwargs):
     print("Running smoke test on cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("python3 smoketest.py")
     retcode = oscmd(cmdstr)    # Need to check for success
+    
+def create_config(configJSON):
+    print("Configuration file %s does not exist. You'll now need to create one" % configJSON)
+    inputdict = {
+        "maxNodes":("INT","Enter maximum number of nodes for the cluster",2 ),
+        "nodesDesired":("INT","Enter desired number of nodes for the cluster",2 ),
+        "region":("STR","Enter your AWS Region","NONE" ),
+        "account":("STR","Enter your AWS Account Number","NONE" ),
+        "clusterName":("STR","Enter the cluster name","NONE" ),
+        "VPC_STACK_NAME":("STR","Enter your VPC_STACK_NAME","eks-vpc" ),
+        "CONTAINER_TAG":("STR","Enter the TAG for your worker container","jpablomch/scanner-aws:latest"),
+        "BUCKET":("STR","Enter your AWS Bucket Name for scannerdb","NONE"),
+        "KEYNAME":("STR","Enter the name of your AWS SSH KEY","NONE"),
+        "INSTANCE_TYPE":("STR","Enter the worker and master instance type","c4.8xlarge")
+    }
+    fdict = {}
+    for key in sorted(inputdict):
 
+        fielddata = inputdict[key]
+        ftype = fielddata[0]
+        fdefault = str(fielddata[2])
+        fprompt = fielddata[1] + " [%s]: " % fdefault
+
+        finput = input(fprompt)
+        if not finput:
+            fvalue = fdefault
+        else:
+            fvalue = finput
+        if ftype == "INT":
+            fvalue = int(fvalue) # catch non integer input TODO
+        fdict[key] = fvalue
+        pass
+    with open(configJSON,'w') as jsonout:
+        json.dump(fdict,jsonout, indent = 4, sort_keys = True)
+    pass
 def scale_cluster(kwargs):
     cmdstr = ("bash %s scalecluster.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
     retcode = oscmd(cmdstr)    # Need to check for success

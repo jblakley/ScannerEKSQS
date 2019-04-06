@@ -1,3 +1,5 @@
+#!/bin/bash
+
 programname=$0
 
 function errorexit {
@@ -106,7 +108,7 @@ echo "EKS worker node group created."
 # CHECK FOR SUCCESSFUL STACK CREATION
 STACK_STATUS=$(aws cloudformation describe-stacks|jq -r ".Stacks[] | select(.StackName == \"$CLUSTER_NAME-workers\") | .StackStatus")
 echo "STACK_STATUS=$STACK_STATUS"
-if ! [ "$STACK_STATUS = "CREATE_COMPLETE" ]
+if ! [ "$STACK_STATUS" = "CREATE_COMPLETE" ]
 then
 	errorexit "Stack Creation Failure: $STACK_STATUS"
 fi
