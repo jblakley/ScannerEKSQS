@@ -10,8 +10,12 @@ Name the role 'eksServiceRole'. This only needs to be done one time for the acco
 
  2. Have your AWS account information and credentials at hand. 
 
-From http://github.com/jblakley/ScannerEKSQS
-Run the following on your brand new Ubuntu 16.04 instance. Download the file and run it. You don't need to clone but OK if you do.
+Download baseline-ubuntu-16-04.sh and run it. You can get it with:
+
+```
+wget https://github.com/jblakley/ScannerEKSQS/blob/dev/baseline-ubuntu-16-04.sh
+```
+
 You will need your AWS credentials. You must be root.
 
 ```
