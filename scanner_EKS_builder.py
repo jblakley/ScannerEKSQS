@@ -180,7 +180,7 @@ def main():
         if deployCluster is True:
             deploy_k8s(kwargs)
             wait_for_deployment()
-            run_smoke()
+            run_smoke(kwargs)
         create_setK8SSenv(kwargs)
         print ("# Completed Processing --> Exiting")
         print ("#\tDon't forget to run:\n\t. ./setK8SSenv.sh")
@@ -189,45 +189,58 @@ def main():
         
     except KeyboardInterrupt:
         sys.exit(0)
+        
+''' Application Functions '''        
 def build_staging_machine(kwargs):
     print("Building staging machine")
     cmdstr = ("bash %s ./build_staging_machine.sh" % getDBGSTR())
-    retcode = oscmd(cmdstr)   
+    retcode = oscmd(cmdstr)   # Need to check for success TODO
+
 def create_cluster(kwargs):
-    # Need to check if cluster already exists TODO
     cn = kwargs['CLUSTER_NAME']
-    
     if isEKSCluster(cn):
-        print("Cluster %s already exists -- can't create -- proceeding")
+        print("Cluster %s already exists -- can't create -- proceeding" % cn)
         return
     nn = str(kwargs['MAXNODES'])
     os.environ['MAXNODES'] = nn
-
-    kn = str(kwargs['KEYNAME'])
-    rn = str(kwargs['REGION'])
-    bk = str(kwargs['BUCKET'])
-
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
-    cmdstr = ("bash %s ./create_eks_cluster.sh %s %s %s %s" % (getDBGSTR(),cn, kn, rn, bk))
-    retcode = oscmd(cmdstr)
-    # Need to check for success TODO
+    cmdstr = ("bash %s ./create_eks_cluster.sh" % getDBGSTR)
+    retcode = oscmd(cmdstr)    # Need to check for success TODO
 
 def build_deployment(kwargs):
     print("Deploying deployment for %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./build_deployment.sh" % getDBGSTR())
-    retcode = oscmd(cmdstr)
+    retcode = oscmd(cmdstr)    # Need to check for success
 
 def deploy_k8s(kwargs):
     print("Deploying cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./deploy.sh" % getDBGSTR())
-    retcode = oscmd(cmdstr)
-    # Need to check for success
+    retcode = oscmd(cmdstr)    # Need to check for success
+
 
 def delete_cluster(kwargs):
     print("Deleting cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./delete_eks_cluster.sh %s" % (getDBGSTR(), kwargs['CLUSTER_NAME']))
-    retcode = oscmd(cmdstr)
+    retcode = oscmd(cmdstr)    # Need to check for success
 
+def run_smoke(kwargs):
+    print("Running smoke test on cluster %s" % kwargs['CLUSTER_NAME'])
+    cmdstr = ("python3 smoketest.py")
+    retcode = oscmd(cmdstr)    # Need to check for success
+
+def scale_cluster(kwargs):
+    cmdstr = ("bash %s scalecluster.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
+    retcode = oscmd(cmdstr)    # Need to check for success
+
+def scale_deployment(kwargs):
+    cmdstr = ("bash %s scaledeployment.sh" % getDBGSTR())
+    retcode = oscmd(cmdstr)    # Need to check for success
+    
+def scale_autoscaling_group(kwargs):
+    cmdstr = ("bash %s scaleasg.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
+    retcode = oscmd(cmdstr)    # Need to check for success
+
+''' kubernetes  functions '''
 def wait_for_cluster():
     SETTLETIME = 30 # seconds
     if not is_cluster_running():    
@@ -236,7 +249,8 @@ def wait_for_cluster():
             if is_cluster_running():
                 break
             wait_bar(SETTLETIME)
-    retcode = oscmd('kubectl get nodes')
+    retcode = oscmd('kubectl get nodes')    # Need to check for success
+
 def is_cluster_running():
     oscmd('kubectl get nodes')
     nodessall = int(sp.check_output(
@@ -255,6 +269,7 @@ def is_cluster_running():
         return True
     else:
         return False
+   
 def wait_for_deployment():
     SETTLETIME = 120 # seconds
     if not is_deployment_running():
@@ -263,7 +278,7 @@ def wait_for_deployment():
             if is_deployment_running():
                 break            
             wait_bar(SETTLETIME)
-    oscmd('kubectl get pods')
+    retcode = oscmd('kubectl get pods')    # Need to check for success
 def is_deployment_running():
     oscmd('kubectl get pods')
     workerpodsall = int(sp.check_output(
@@ -280,25 +295,8 @@ def is_deployment_running():
         return True
     else:
         return False
-def run_smoke():
-    cmdstr = ("python3 smoketest.py")
-    oscmd(cmdstr)
-    pass
-def scale_cluster(kwargs):
-    cmdstr = ("bash %s scalecluster.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
-    oscmd(cmdstr)
-    pass
-def scale_deployment(kwargs):
-    cmdstr = ("bash %s scaledeployment.sh" % getDBGSTR())
-    oscmd(cmdstr)
-    pass
-def scale_autoscaling_group(kwargs):
-    cmdstr = ("bash %s scaleasg.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
-    oscmd(cmdstr)
-    pass
-# App Utilities
+
 def setKubeconfig(kwargs):
-    # Check me first
     meName = kwargs['USER']
     clusterName = kwargs['CLUSTER_NAME']
     homeDir = kwargs['HOME']
@@ -311,7 +309,15 @@ def setKubeconfig(kwargs):
         homeKube = "%s/.kube/config-%s" % (homeDir,clusterName)
         if os.path.isfile(homeKube):
             os.environ['KUBECONFIG'] = homeKube
-        
+
+def create_setK8SSenv(kwargs):
+    fname = "setK8SSenv.sh"
+    filed = open(fname,"w")
+    for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTER_NAME']:
+        filed.write("export %s=%s\n" % (evar,os.environ[evar]))
+    filed.close()
+
+''' AWS Functions '''        
 def getAWScred():
     accessk = sp.check_output(
         '''
@@ -325,7 +331,7 @@ def getAWScred():
         shell=True).strip().decode('utf-8')
     os.environ['AWS_ACCESS_KEY_ID'] = accessk
     os.environ['AWS_SECRET_ACCESS_KEY'] = secretk
-    pass
+    
 def isEKSCluster(cname):
     if cname in getEKSClusters():
         cmdstr = ("aws cloudformation describe-stacks|jq -r '.Stacks[] | select(.StackName == \"%s-workers\") | .StackStatus'") % cname
@@ -335,6 +341,7 @@ def isEKSCluster(cname):
         return True
     else:
         return False
+    
 def getEKSClusters():
     clusters = sp.check_output(
         '''
@@ -342,6 +349,34 @@ def getEKSClusters():
         ''',
         shell=True).strip().decode('utf-8')
     return clusters
+
+def check_arn(kwargs):
+    ''' See if arn exists. If not create '''
+    ARN = "arn:aws:iam::%s:role/eksServiceRole" % kwargs['AWSACCT']
+#     ARN = "arn:aws:iam::539776273521:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport"
+    strcmd = "aws iam list-roles|jq -r '.Roles[].Arn'|grep eksServiceRole"
+    arn = cmd(strcmd)
+    if ARN in arn:
+        print("ARN %s exists" % ARN)
+        return True
+    ''' ARN does not exist -- create it '''
+    print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account" % ARN)
+    return False
+
+''' System and application functions '''
+def getDBGSTR():
+    if debugOn:
+        return "-vx"
+    else:
+        return ""
+def wait_bar(seconds):
+    wait_range = tqdm(range(seconds)) 
+    for ii in wait_range:
+        wait_range.refresh()
+        time.sleep(1)
+    wait_range.write("DONE", file=None, end='\n', nolock=False)
+    wait_range.close()
+    print()
 
 def set_environ(kwargs):
     # Fix for root with bad home (ubuntu 16.04)
@@ -357,44 +392,8 @@ def set_environ(kwargs):
     # Get paths right
     os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
     os.environ['PATH'] = os.environ['PATH'] + ":."
-
-def create_setK8SSenv(kwargs):
-    fname = "setK8SSenv.sh"
-    filed = open(fname,"w")
-    for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTER_NAME']:
-        filed.write("export %s=%s\n" % (evar,os.environ[evar]))
-    filed.close()
-
-def check_arn(kwargs):
-    ''' See if arn exists. If not create '''
-    ARN = "arn:aws:iam::%s:role/eksServiceRole" % kwargs['AWSACCT']
-#     ARN = "arn:aws:iam::539776273521:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport"
-    strcmd = "aws iam list-roles|jq -r '.Roles[].Arn'|grep eksServiceRole"
-    arn = cmd(strcmd)
-    if ARN in arn:
-        print("ARN %s exists" % ARN)
-        return True
-    ''' ARN does not exist -- create it '''
-    print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account" % ARN)
-    return False
-
-def getDBGSTR():
-    if debugOn:
-        return "-vx"
-    else:
-        return ""
-def wait_bar(seconds):
-    wait_range = tqdm(range(seconds)) 
-    for ii in wait_range:
-        wait_range.refresh()
-        time.sleep(1)
-    wait_range.write("DONE", file=None, end='\n', nolock=False)
-    wait_range.close()
-    print()
-
 def oscmd(cmdstr):
     return os.system(cmdstr) # return exit status
-
 
 def cmd(cmdstr):
     output = os.popen(cmdstr).read().split("\n")
