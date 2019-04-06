@@ -28,6 +28,8 @@ then
 	BRANCH=dev
 else
 	BRANCH=master
+fi
+
 test -d ~/git || mkdir ~/git
 cd ~/git
 
