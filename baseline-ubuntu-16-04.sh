@@ -25,7 +25,7 @@ export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_access_key ~/.aws/credentials|awk
 
 test -d ~/git || mkdir ~/git
 cd ~/git
-test -d ScannerEKSQS || git clone https://github.com/jblakley/ScannerEKSQS
+test -d ScannerEKSQS || git clone -b dev https://github.com/jblakley/ScannerEKSQS
 
 cd $QSHOME
 
