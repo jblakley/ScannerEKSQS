@@ -13,7 +13,7 @@ Name the role 'eksServiceRole'. This only needs to be done one time for the acco
 Download baseline-ubuntu-16-04.sh and run it. You can get it with:
 
 ```
-wget https://github.com/jblakley/ScannerEKSQS/blob/dev/baseline-ubuntu-16-04.sh
+wget https://github.com/jblakley/ScannerEKSQS/raw/dev/baseline-ubuntu-16-04.sh
 ```
 
 You will need your AWS credentials. You must be root.
