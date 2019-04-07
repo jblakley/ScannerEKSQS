@@ -195,6 +195,7 @@ def build_staging_machine(kwargs):
     print("Building staging machine")
     cmdstr = ("bash %s ./build_staging_machine.sh" % getDBGSTR())
     retcode = oscmd(cmdstr)   # Need to check for success TODO
+    return retcode
 
 def create_cluster(kwargs):
     cn = kwargs['CLUSTER_NAME']
@@ -206,27 +207,32 @@ def create_cluster(kwargs):
     print("Creating cluster with name: %s and %s nodes" % (cn,nn))
     cmdstr = ("bash %s ./create_eks_cluster.sh" % getDBGSTR())
     retcode = oscmd(cmdstr)    # Need to check for success TODO
+    return retcode
 
 def build_deployment(kwargs):
     print("Deploying deployment for %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./build_deployment.sh" % getDBGSTR())
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
 
 def deploy_k8s(kwargs):
     print("Deploying cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./deploy.sh" % getDBGSTR())
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
 
 
 def delete_cluster(kwargs):
     print("Deleting cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./delete_eks_cluster.sh %s" % (getDBGSTR(), kwargs['CLUSTER_NAME']))
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
 
 def run_smoke(kwargs):
     print("Running smoke test on cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("python3 smoketest.py")
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
     
 def create_config(configJSON):
     print("Configuration file %s does not exist. You'll now need to create one" % configJSON)
@@ -265,14 +271,17 @@ def create_config(configJSON):
 def scale_cluster(kwargs):
     cmdstr = ("bash %s scalecluster.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
 
 def scale_deployment(kwargs):
     cmdstr = ("bash %s scaledeployment.sh" % getDBGSTR())
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
     
 def scale_autoscaling_group(kwargs):
     cmdstr = ("bash %s scaleasg.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
 
 ''' kubernetes  functions '''
 def wait_for_cluster():
@@ -284,6 +293,7 @@ def wait_for_cluster():
                 break
             wait_bar(SETTLETIME)
     retcode = oscmd('kubectl get nodes')    # Need to check for success
+    return retcode
 
 def is_cluster_running():
     oscmd('kubectl get nodes')
@@ -313,6 +323,8 @@ def wait_for_deployment():
                 break            
             wait_bar(SETTLETIME)
     retcode = oscmd('kubectl get pods')    # Need to check for success
+    return retcode
+
 def is_deployment_running():
     oscmd('kubectl get pods')
     workerpodsall = int(sp.check_output(
