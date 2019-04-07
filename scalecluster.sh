@@ -15,7 +15,14 @@ NUMINSVC=$(aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGrou
 if [ $NEWMAX -lt $NUMINSVC ]
 then
 	echo "Cluster is smaller than current -- deleting deployment. You will have to redeploy manually"
-	bash ./delete_deployment.sh # Perhaps overkill TODO
+	PODINSVC=$(kubectl get pods|egrep -e "worker.*Running"|wc|awk '{print $1}')
+	PODDESIRED = $(expr $NEWMAX - 1)
+	if [ $PODINSVC -gt $PODDESIRED ]
+	then
+		echo "Print reducing the number of worker pods for $PODINSVC to $PODDESIERED"
+		kubectl scale deployment/scanner-worker --replicas=$PODDESIRED
+	fi
+	# bash ./delete_deployment.sh # Perhaps overkill TODO
 fi
 while [ $NEWMAX -ne $NUMINSVC ]
 do
