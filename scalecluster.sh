@@ -37,9 +37,7 @@ do
 	echo "Waiting for number of nodes to stabilize: $NUMINSVC going to $NEWMAX"
 	sleep $SLEEP
 	kubectl get nodes
-	# NUMINSVC=$(aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].Instances[].LifecycleState'|wc|awk '{print $1}')
 	NUMINSVC=$(kubectl get nodes|grep Ready|grep -v NotRead|wc|awk '{print $1}')
-	# TODO check to make sure that they're actually ready
 done
 
 # Now scale pods -- redundant if scaling down. Already set above
@@ -48,8 +46,8 @@ echo "Setting the number of worker pods to $PODDESIRED"
 PODINSVC=$(kubectl get pods|egrep -e "worker.*Running"|wc|awk '{print $1}')
 while [ $PODINSVC -ne $PODDESIRED ]
 do
-        sleep $SLEEP
+    sleep $SLEEP
+    kubectl get pods
 	PODINSVC=$(kubectl get pods|egrep -e "worker.*Running"|wc|awk '{print $1}')
-        kubectl get pods
 done
 
