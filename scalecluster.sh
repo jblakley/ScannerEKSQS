@@ -44,6 +44,11 @@ done
 kubectl scale deployment/scanner-worker --replicas=$PODDESIRED
 echo "Setting the number of worker pods to $PODDESIRED"
 PODINSVC=$(kubectl get pods|egrep -e "worker.*Running"|wc|awk '{print $1}')
+if [ $PODINSVC -eq 0 ]
+then
+	echo "No pods in service -- deployment must not be running. Done ..."
+	exit 0
+fi
 while [ $PODINSVC -ne $PODDESIRED ]
 do
     sleep $SLEEP
