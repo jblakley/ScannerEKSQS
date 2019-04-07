@@ -12,10 +12,16 @@ echo Changing auto scaling group $ASGNAME to desired capacity $NEWMAX
 aws autoscaling set-desired-capacity --auto-scaling-group-name $ASGNAME --desired-capacity $NEWMAX
 
 NUMINSVC=$(aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].Instances[].LifecycleState'|wc|awk '{print $1}')
+if [ $NEWMAX -lt $NUMINSVC ]
+then
+	echo "Cluster is smaller than current -- deleting deployment. You will have to redeploy manually"
+	bash ./delete_deployment.sh # Perhaps overkill TODO
+fi
 while [ $NEWMAX -ne $NUMINSVC ]
 do
 	echo "Waiting for number of nodes to stabilize: $NUMINSVC going to $NEWMAX"
 	sleep $SLEEP
 	kubectl get nodes
 	NUMINSVC=$(aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].Instances[].LifecycleState'|wc|awk '{print $1}')
+	# TODO check to make sure that they're actually ready
 done
