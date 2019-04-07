@@ -10,9 +10,16 @@ Name the role 'eksServiceRole'. This only needs to be done one time for the acco
 
  2. Have your AWS account information and credentials at hand. 
 
-From http://github.com/jblakley/ScannerEKSQS
-Run the following on your brand new Ubuntu 16.04 instance. Download the file and run it. You don't need to clone but OK if you do.
-You will need your AWS credentials. You must be root.
+Download baseline-ubuntu-16-04.sh and run it. This script assumes that your staging machine is running Ubuntu 16.04. You can get the script with:
+
+```
+wget https://github.com/jblakley/ScannerEKSQS/raw/master/baseline-ubuntu-16-04.sh
+```
+
+To continue, you must be root. You will be walked through a series of prompts to configure your environment. You will be prompted for your AWS credentials, your AWS account number, the AWS region, the VPC to run the cluster in (needs to be the same as your staging machine VPC), an S3 bucket to store the scanner database in, your SSH keyname, the master and worker instance type, a tag for the scanner master and worker container you want to use, the name you want to give the cluster and how many maximum and desired nodes you want in the cluster. (Your aws credentials are only stored in the $HOME/.aws/credentials file.)
+
+You can change these values in seb_config.json after the staging machine is setup.
+
 
 ```
 bash baseline-ubuntu-16-04.sh 

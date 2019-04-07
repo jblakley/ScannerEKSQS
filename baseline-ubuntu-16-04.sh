@@ -22,11 +22,18 @@ export AWS_ACCESS_KEY_ID=$(grep aws_access_key_id ~/.aws/credentials|awk '{print
 export AWS_SECRET_ACCESS_KEY=$(grep aws_secret_access_key ~/.aws/credentials|awk '{print $3}')
 
 # GIT
+read -p "Clone the dev branch? [Y/n]: " DEVBRANCH
+if [ "$DEVBRANCH" == "Y" ]
+then
+	BRANCH=dev
+else
+	BRANCH=master
+fi
 
 test -d ~/git || mkdir ~/git
 cd ~/git
-test -d ScannerEKSQS || git clone https://github.com/jblakley/ScannerEKSQS
+
+test -d ScannerEKSQS || git clone -b $BRANCH https://github.com/jblakley/ScannerEKSQS
 
 cd $QSHOME
-
 python3 ./scanner_EKS_builder.py --staging

@@ -1,32 +1,30 @@
+#!/bin/bash
+
 programname=$0
 
-function usage {
-    echo "usage: $programname name"
-    echo "  name    name to give the cluster"
+function errorexit {
+    echo "$programname EXITING: $*"
     exit 1
 }
 
-# Set up parameters -- if not set in environment, use default
-if [ $# == 0 ]; then
-	test -z "$CLUSTER_NAME" && usage
-fi
+# Set up parameters -- if not set in environment, prompt to get them TODO
 
-test -n "$1" && export CLUSTER_NAME=$1
-test -n "$2" && export KEYNAME=$2
-test -n "$3" && export REGION=$3
-test -n "$4" && export BUCKET=$4
-test -z "$VPC_STACK_NAME" && export VPC_STACK_NAME=eks-vpc
-test -z "$AWSACCT" && export AWSACCT=601041732504
-test -z "$INSTANCE_TYPE" && export INSTANCE_TYPE=c4.8xlarge
-test -z "$MAXNODES" && export MAXNODES=6
-test -z "$NODESDESIRED" && export NODESDESIRED=3
-test -z "$AMI" && export AMI=ami-dea4d5a1
-# Default values TODO: remove?
-test -z "$KEYNAME" && export KEYNAME=ISTC-VCS1-JRB
-test -z "$REGION" && export REGION=us-east-1
-test -z "$BUCKET" && export BUCKET=s3-scanner-utilities-1
+test -z "$AMI" && export AMI=$(aws ec2 describe-images --filters Name='name',Values='eks-worker-v20'|jq -r '.Images[].ImageId')
 
-echo "MAXNODES=$MAXNODES NODESDESIRED=$NODESDESIRED"
+for envvar in "VPC_STACK_NAME" "AWSACCT" "INSTANCE_TYPE" "MAXNODES" "NODESDESIRED" "AMI" "KEYNAME" "BUCKET" "REGION"
+do
+	test -z ${!envvar} && errorexit "${envvar} is not set"
+done
+
+# CHECK THE CLUSTER PARAMETERS ARE VALID
+# CHECK THE KEYNAME
+ISKEYNAME=$(aws ec2 describe-key-pairs|jq -r ".KeyPairs[] | select(.KeyName == \"$KEYNAME\") | .KeyName")
+test -z "$ISKEYNAME" && errorexit "Invalid KEYNAME $KEYNAME"
+
+
+# CHECK THE BUCKET
+BUCKETSTATUS=$(aws s3api head-bucket --bucket s3-scanner-utilities-1 2>&1)
+test -n "$BUCKETSTATUS" && errorexit "Invalid BUCKET: $BUCKET"
 
 export PATH=$PATH:.
 
@@ -66,8 +64,7 @@ COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
 while ! [ "$COND" = "\"ACTIVE\"" ]; do
   sleep 20
   COND=$(aws eks describe-cluster --name $CLUSTER_NAME --query cluster.status)
-  TS=$(date '+%H:%M:%S')
-  echo "$TS Cluster $CLUSTER_NAME Status is $COND"
+  echo "$(date '+%H:%M:%S') Cluster $CLUSTER_NAME Status is $COND"
 done
 echo "EKS cluster created."
 
@@ -96,7 +93,7 @@ aws cloudformation create-stack --stack-name $CLUSTER_NAME-workers \
 	ParameterKey=ClusterName,ParameterValue=$CLUSTER_NAME \
     ParameterKey=ClusterControlPlaneSecurityGroup,ParameterValue=$SECURITY_GROUP_IDS \
     ParameterKey=NodeGroupName,ParameterValue=$CLUSTER_NAME-workers-node-group \
-	ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue=1 \
+	ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue=$NODESDESIRED \
     ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue=$MAXNODES \
     ParameterKey=NodeInstanceType,ParameterValue=$INSTANCE_TYPE \
     ParameterKey=NodeImageId,ParameterValue=$AMI \
@@ -108,6 +105,13 @@ echo "Waiting for EKS worker node group to be created... (may take a while)"
 aws cloudformation wait stack-create-complete --stack-name $CLUSTER_NAME-workers
 echo "EKS worker node group created."
 
+# CHECK FOR SUCCESSFUL STACK CREATION
+STACK_STATUS=$(aws cloudformation describe-stacks|jq -r ".Stacks[] | select(.StackName == \"$CLUSTER_NAME-workers\") | .StackStatus")
+echo "STACK_STATUS=$STACK_STATUS"
+if ! [ "$STACK_STATUS" = "CREATE_COMPLETE" ]
+then
+	errorexit "Stack Creation Failure: $STACK_STATUS"
+fi
 
 aws cloudformation describe-stacks --stack-name $CLUSTER_NAME-workers
 
