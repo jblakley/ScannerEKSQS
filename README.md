@@ -40,7 +40,7 @@ To run the quickstart to create a cluster, build the deployment, deploy it and r
 ```
 
 
-May go without saying but you can't build and deploy before creating and you can't deploy before building once.
+May go without saying but you can't build and deploy before creating and you can't deploy before building once. Deleting and halting are standalone -- they execute and then exit. Use the scale option to restart a cluster from a stop or to change the number of nodes and pods in your cluster.
 
 Once you've run the quickstart all the way through, run:
 
@@ -63,17 +63,20 @@ Options:
                         use NODES as number of desired nodes in the cluster
   -m MAXNODES, --maxnodes=MAXNODES
                         use MAXNODES as number of maximum nodes in the cluster
+                        (only on create)
   -i INSTANCE, --instancetype=INSTANCE
                         Use instance type INSTANCE in cluster
   -C, --create          Create the cluster
   -B, --build           Build the deployment for the cluster
-  -D, --deploy          Build and Deploy the cluster
+  -D, --deploy          Deploy the cluster
   -S, --staging         Make this instance a staging machine
-  -G, --scale           Scale the cluster and deployment to specified maximum
-                        and desired nodes
+  -G, --scale           Scale the cluster and deployment to specified desired
+                        nodes (with -n option)
+  -H, --halt            Halt the cluster by changing autoscaling group desired
+                        size to 0
   -e, --delete          delete the cluster
-  -j NAME, --jsonconfig=NAME
-                        use NAME as json configuration file
+  -j FILE.json, --jsonconfig=FILE.json
+                        use FILE.json as configuration file
   -d, --debug           Print debugging information
   -v, --verbose         Print detailed information #TODO
 ```
