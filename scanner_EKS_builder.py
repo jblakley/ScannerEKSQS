@@ -36,7 +36,7 @@ def main():
         parser.add_option("-n", "--nodesdesired", dest="nodesdesired",
                       help="use NODES as number of desired nodes in the cluster", metavar="NODES")
         parser.add_option("-m", "--maxnodes", dest="maxnodes",
-                      help="use MAXNODES as number of maximum nodes in the cluster", metavar="MAXNODES")
+                      help="use MAXNODES as number of maximum nodes in the cluster (only on create)", metavar="MAXNODES")
         parser.add_option("-i", "--instancetype", dest="instancetype",
                       help="Use instance type INSTANCE in cluster", metavar="INSTANCE")
         parser.add_option("-C", "--create",
@@ -47,18 +47,21 @@ def main():
                       help="Build the deployment for the cluster")
         parser.add_option("-D", "--deploy",
                       action="store_true", dest="deploy", default=False,
-                      help="Build and Deploy the cluster")
+                      help="Deploy the cluster")
         parser.add_option("-S", "--staging",
                       action="store_true", dest="staging", default=False,
                       help="Make this instance a staging machine")
         parser.add_option("-G", "--scale",
                       action="store_true", dest="scale", default=False,
-                      help="Scale the cluster and deployment to specified maximum and desired nodes")        
+                      help="Scale the cluster and deployment to specified desired nodes (with -n option)")
+        parser.add_option("-H", "--halt",
+                      action="store_true", dest="halt", default=False,
+                      help="Halt the cluster by changing autoscaling group desired size to 0")  
         parser.add_option( "-e", "--delete",
                       action="store_true", dest="delete", default=False,
                       help="delete the cluster")
         parser.add_option("-j", "--jsonconfig", dest="jsonconfig",
-                      help="use NAME as json configuration file", metavar="NAME")
+                      help="use FILE.json as configuration file", metavar="FILE.json")
         parser.add_option("-d", "--debug",
                       action="store_true", dest="debug", default=False,
                       help="Print debugging information")
@@ -118,6 +121,7 @@ def main():
         deployCluster = options.deploy
         deleteCluster = options.delete
         scaleCluster = options.scale
+        haltCluster = options.halt
 
         
         ''' Command line overrides '''
@@ -160,33 +164,50 @@ def main():
         ''' App Run '''
         if not check_arn(kwargs): # make sure eksServiceRole exists
             exit(1)
+        
+        ''' Delete the Cluster '''
         if deleteCluster is True:
             delete_cluster(kwargs)
             sys.exit(0)
+        ''' halt the Cluster '''
+        if haltCluster is True:
+            halt_cluster(kwargs)
+            sys.exit(0)            
+        ''' Build a Staging Machine (locally) '''
         if buildStaging is True:
             build_staging_machine(kwargs)
+        ''' Check if any other tasks to do '''
         if not createCluster and not buildDeployment and not deployCluster and not scaleCluster:
             print("No other tasks to do -- exiting")
             sys.exit(0)
+        ''' Create a Cluster '''
         if createCluster is True:
             create_cluster(kwargs)
+        ''' Rest assumes the cluster already exists -- check if it does ... '''
         if not isEKSCluster(clusterName):
             print("No such cluster: %s -- exiting" % clusterName)
             sys.exit(1)
         setKubeconfig(kwargs)
+        ''' Check if AWS autoscaling group has been "turned off" '''
+        if asgDesiredSize() == 0:
+            scale_cluster(kwargs) # turn it on
+            wait_for_deployment()
         wait_for_cluster()
+        ''' Change to the number of nodes and pods '''
         if scaleCluster:
             dep_running = is_deployment_running()
             scale_cluster(kwargs)
             wait_for_cluster() 
             if dep_running:
                 wait_for_deployment()
-#         oscmd("env")
+        ''' Build the master and worker containers '''
         if buildDeployment is True:
             build_deployment(kwargs)
+        ''' Deploy the master and worker pods '''
         if deployCluster is True:
             deploy_k8s(kwargs)
             wait_for_deployment()
+            ''' Run a smoke test '''
             run_smoke(kwargs)
         create_setEKSSenv(kwargs)
         print ("# Completed Processing --> Exiting")
@@ -228,11 +249,20 @@ def deploy_k8s(kwargs):
     retcode = oscmd(cmdstr)    # Need to check for success
     return retcode
 
-
 def delete_cluster(kwargs):
     print("Deleting cluster %s" % kwargs['CLUSTER_NAME'])
     cmdstr = ("bash %s ./delete_eks_cluster.sh %s" % (getDBGSTR(), kwargs['CLUSTER_NAME']))
     retcode = oscmd(cmdstr)    # Need to check for success
+    return retcode
+
+def halt_cluster(kwargs):
+    print("Halting cluster %s" % kwargs['CLUSTER_NAME'])
+    retcode = None
+    ags_name= cmd("aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].AutoScalingGroupName'")
+    if ags_name is not None:
+        ags_name = ags_name[0]
+        cmdstr = ("aws autoscaling set-desired-capacity --auto-scaling-group-name %s --desired-capacity 0" % ags_name)
+        retcode = oscmd(cmdstr)    # Need to check for success
     return retcode
 
 def run_smoke(kwargs):
@@ -296,6 +326,7 @@ def scale_autoscaling_group(kwargs):
 def wait_for_cluster():
     ''' waits until all nodes are in Ready state '''    
     SETTLETIME = 30 # seconds
+    asgDesired = cmd("")
     if not is_cluster_running():    
         while True:
             wait_bar(SLEEPTIME)
@@ -423,6 +454,11 @@ def check_arn(kwargs):
     ''' ARN does not exist -- create it '''
     print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account" % ARN)
     return False
+def asgDesiredSize():
+    asgoutput = cmd("aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].DesiredCapacity'")
+    if asgoutput is not None:
+        return int(asgoutput[0])
+    return 0
 
 ''' System and application functions '''
 def getDBGSTR():
