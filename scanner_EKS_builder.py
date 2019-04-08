@@ -160,33 +160,46 @@ def main():
         ''' App Run '''
         if not check_arn(kwargs): # make sure eksServiceRole exists
             exit(1)
+        
+        ''' Delete the Cluster '''
         if deleteCluster is True:
             delete_cluster(kwargs)
             sys.exit(0)
+        ''' Build a Staging Machine (locally) '''
         if buildStaging is True:
             build_staging_machine(kwargs)
+        ''' Check if any other tasks to do '''
         if not createCluster and not buildDeployment and not deployCluster and not scaleCluster:
             print("No other tasks to do -- exiting")
             sys.exit(0)
+        ''' Create a Cluster '''
         if createCluster is True:
             create_cluster(kwargs)
+        ''' Rest assumes the cluster already exists -- check if it does ... '''
         if not isEKSCluster(clusterName):
             print("No such cluster: %s -- exiting" % clusterName)
             sys.exit(1)
         setKubeconfig(kwargs)
+        ''' Check if AWS autoscaling group has been "turned off" '''
+        if asgDesiredSize() == 0:
+            scale_cluster(kwargs) # turn it on
+            wait_for_deployment()
         wait_for_cluster()
+        ''' Change to the number of nodes and pods '''
         if scaleCluster:
             dep_running = is_deployment_running()
             scale_cluster(kwargs)
             wait_for_cluster() 
             if dep_running:
                 wait_for_deployment()
-#         oscmd("env")
+        ''' Build the master and worker containers '''
         if buildDeployment is True:
             build_deployment(kwargs)
+        ''' Deploy the master and worker pods '''
         if deployCluster is True:
             deploy_k8s(kwargs)
             wait_for_deployment()
+            ''' Run a smoke test '''
             run_smoke(kwargs)
         create_setEKSSenv(kwargs)
         print ("# Completed Processing --> Exiting")
@@ -296,6 +309,7 @@ def scale_autoscaling_group(kwargs):
 def wait_for_cluster():
     ''' waits until all nodes are in Ready state '''    
     SETTLETIME = 30 # seconds
+    asgDesired = cmd("")
     if not is_cluster_running():    
         while True:
             wait_bar(SLEEPTIME)
@@ -423,6 +437,11 @@ def check_arn(kwargs):
     ''' ARN does not exist -- create it '''
     print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account" % ARN)
     return False
+def asgDesiredSize():
+    asgoutput = cmd("aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].DesiredCapacity'")
+    if asgoutput is not None:
+        return int(asgoutput[0])
+    return 0
 
 ''' System and application functions '''
 def getDBGSTR():
