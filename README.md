@@ -6,7 +6,7 @@ Prerequisites:
 Roles-->Create Role-->EKS-->Permissions-->Next-->Next. 
 ```
 
-Name the role 'eksServiceRole'. This only needs to be done one time for the account.
+Name the role 'eksServiceRole'. Make sure you attach 'AmazonEKSClusterPolicy' and 'AmazonEKSServicePolicy' to the role. This only needs to be done one time for the account.
 
  2. Have your AWS account information and credentials at hand. 
 
@@ -16,9 +16,9 @@ Download baseline-ubuntu-16-04.sh and run it. This script assumes that your stag
 wget https://github.com/jblakley/ScannerEKSQS/raw/master/baseline-ubuntu-16-04.sh
 ```
 
-To continue, you must be root. You will be walked through a series of prompts to configure your environment. You will be prompted for your AWS credentials, your AWS account number, the AWS region, the VPC to run the cluster in (needs to be the same as your staging machine VPC), an S3 bucket to store the scanner database in, your SSH keyname, the master and worker instance type, a tag for the scanner master and worker container you want to use, the name you want to give the cluster and how many maximum and desired nodes you want in the cluster. (Your aws credentials are only stored in the $HOME/.aws/credentials file.)
+To continue, you must be root. You will be walked through a series of prompts to configure your environment. You will be prompted for your AWS credentials, your AWS account number, the AWS region, AWS output format (enter 'json'), the VPC to run the cluster in (needs to be the same as your staging machine VPC), an S3 bucket to store the scanner database in, your SSH keyname, the master and worker instance type, a tag for the scanner master and worker container you want to use, the name you want to give the cluster and how many maximum and desired nodes you want in the cluster. (Your aws credentials are only stored in the $HOME/.aws/credentials file.)
 
-You can change these values in seb_config.json after the staging machine is setup.
+You can change most of these these values in seb_config.json after the staging machine is setup.
 
 
 ```
