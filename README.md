@@ -45,10 +45,10 @@ May go without saying but you can't build and deploy before creating and you can
 Once you've run the quickstart all the way through, run:
 
 ```
-. ./setk8SSenv.sh
+. ./setEKSSenv.sh
 ```
 
-That will let you use your EKS Scanner cluster as you normally would.
+That sets your environment variables and will let you use your EKS Scanner cluster as you normally would.
 
 Command Line Options:
 
@@ -59,22 +59,25 @@ Options:
   -h, --help            show this help message and exit
   -c NAME, --clustername=NAME
                         use NAME as clustername
-  -n INT, --nodesdesired=INT
-                        use INT as number of desired nodes in the cluster
-  -m INT, --maxnodes=INT
-                        use INT as number of maximum nodes in the cluster
+  -n NODES, --nodesdesired=NODES
+                        use NODES as number of desired nodes in the cluster
+  -m MAXNODES, --maxnodes=MAXNODES
+                        use MAXNODES as number of maximum nodes in the cluster
   -i INSTANCE, --instancetype=INSTANCE
                         Use instance type INSTANCE in cluster
   -C, --create          Create the cluster
   -B, --build           Build the deployment for the cluster
   -D, --deploy          Build and Deploy the cluster
   -S, --staging         Make this instance a staging machine
+  -G, --scale           Scale the cluster and deployment to specified maximum
+                        and desired nodes
   -e, --delete          delete the cluster
   -j NAME, --jsonconfig=NAME
                         use NAME as json configuration file
   -d, --debug           Print debugging information
   -v, --verbose         Print detailed information #TODO
 ```
+
 If something goes wrong, the --debug option is pretty useful.
 
 The configuration file supports the following options:

@@ -37,7 +37,7 @@ do
 	echo "Waiting for number of nodes to stabilize: $NUMINSVC going to $NEWMAX"
 	sleep $SLEEP
 	kubectl get nodes
-	NUMINSVC=$(kubectl get nodes|grep Ready|grep -v NotRead|wc|awk '{print $1}')
+	NUMINSVC=$(kubectl get nodes|grep Ready|grep -v NotReady|wc|awk '{print $1}')
 done
 
 # Now scale pods -- redundant if scaling down. Already set above
