@@ -2,7 +2,6 @@
 import sys
 import os.path
 import subprocess as sp
-import getpass
 from optparse import OptionParser
 import time
 import json
@@ -35,9 +34,9 @@ def main():
         parser.add_option("-c", "--clustername", dest="clustername",
                       help="use NAME as clustername", metavar="NAME")
         parser.add_option("-n", "--nodesdesired", dest="nodesdesired",
-                      help="use INT as number of desired nodes in the cluster", metavar="INT")
+                      help="use NODES as number of desired nodes in the cluster", metavar="NODES")
         parser.add_option("-m", "--maxnodes", dest="maxnodes",
-                      help="use INT as number of maximum nodes in the cluster", metavar="INT")
+                      help="use MAXNODES as number of maximum nodes in the cluster", metavar="MAXNODES")
         parser.add_option("-i", "--instancetype", dest="instancetype",
                       help="Use instance type INSTANCE in cluster", metavar="INSTANCE")
         parser.add_option("-C", "--create",
@@ -52,6 +51,9 @@ def main():
         parser.add_option("-S", "--staging",
                       action="store_true", dest="staging", default=False,
                       help="Make this instance a staging machine")
+        parser.add_option("-G", "--scale",
+                      action="store_true", dest="scale", default=False,
+                      help="Scale the cluster and deployment to specified maximum and desired nodes")        
         parser.add_option( "-e", "--delete",
                       action="store_true", dest="delete", default=False,
                       help="delete the cluster")
@@ -115,6 +117,7 @@ def main():
         buildDeployment = options.build        
         deployCluster = options.deploy
         deleteCluster = options.delete
+        scaleCluster = options.scale
 
         
         ''' Command line overrides '''
@@ -138,7 +141,7 @@ def main():
             clusterName = options.clustername
         
         ''' Complete any required options by user input '''
-        while clusterName is None:
+        while clusterName is None:  # TODO is this needed anymore?
             clusterName = input("Enter clustername: ")
         
         kwargs = {'CLUSTER_NAME':clusterName, 'MAXNODES':maxNodes, 'NODESDESIRED':nodesDesired, 
@@ -155,14 +158,14 @@ def main():
         ''' End Setup '''
 
         ''' App Run '''
-        if not check_arn(kwargs):
+        if not check_arn(kwargs): # make sure eksServiceRole exists
             exit(1)
         if deleteCluster is True:
             delete_cluster(kwargs)
             sys.exit(0)
         if buildStaging is True:
             build_staging_machine(kwargs)
-        if not createCluster and not buildDeployment and not deployCluster:
+        if not createCluster and not buildDeployment and not deployCluster and not scaleCluster:
             print("No other tasks to do -- exiting")
             sys.exit(0)
         if createCluster is True:
@@ -172,18 +175,22 @@ def main():
             sys.exit(1)
         setKubeconfig(kwargs)
         wait_for_cluster()
-        scale_cluster(kwargs)
-        wait_for_cluster()        
-        oscmd("env")
+        if scaleCluster:
+            dep_running = is_deployment_running()
+            scale_cluster(kwargs)
+            wait_for_cluster() 
+            if dep_running:
+                wait_for_deployment()
+#         oscmd("env")
         if buildDeployment is True:
             build_deployment(kwargs)
         if deployCluster is True:
             deploy_k8s(kwargs)
             wait_for_deployment()
             run_smoke(kwargs)
-        create_setK8SSenv(kwargs)
+        create_setEKSSenv(kwargs)
         print ("# Completed Processing --> Exiting")
-        print ("#\tDon't forget to run:\n\t. ./setK8SSenv.sh")
+        print ("#\tDon't forget to run:\n. ./setEKSSenv.sh")
         
         ''' End App Run '''
         
@@ -271,11 +278,13 @@ def create_config(configJSON):
 def scale_cluster(kwargs):
     cmdstr = ("bash %s scalecluster.sh %i" % (getDBGSTR(),kwargs['NODESDESIRED']))
     retcode = oscmd(cmdstr)    # Need to check for success
+    pods_on_nodes()    
     return retcode
 
 def scale_deployment(kwargs):
     cmdstr = ("bash %s scaledeployment.sh" % getDBGSTR())
     retcode = oscmd(cmdstr)    # Need to check for success
+    pods_on_nodes()
     return retcode
     
 def scale_autoscaling_group(kwargs):
@@ -285,17 +294,19 @@ def scale_autoscaling_group(kwargs):
 
 ''' kubernetes  functions '''
 def wait_for_cluster():
+    ''' waits until all nodes are in Ready state '''    
     SETTLETIME = 30 # seconds
     if not is_cluster_running():    
         while True:
             wait_bar(SLEEPTIME)
             if is_cluster_running():
                 break
-            wait_bar(SETTLETIME)
+        wait_bar(SETTLETIME)
     retcode = oscmd('kubectl get nodes')    # Need to check for success
     return retcode
 
 def is_cluster_running():
+    ''' checks whether all nodes are in Ready state '''
     oscmd('kubectl get nodes')
     nodessall = int(sp.check_output(
     '''
@@ -315,17 +326,19 @@ def is_cluster_running():
         return False
    
 def wait_for_deployment():
+    ''' waits until all worker pods are in Running state '''
     SETTLETIME = 120 # seconds
     if not is_deployment_running():
         while True:
             wait_bar(SLEEPTIME)
             if is_deployment_running():
                 break            
-            wait_bar(SETTLETIME)
-    retcode = oscmd('kubectl get pods')    # Need to check for success
+        wait_bar(SETTLETIME)
+    retcode = pods_on_nodes()    # Need to check for success
     return retcode
 
 def is_deployment_running():
+    ''' checks whether all worker pods are in Running state '''
     oscmd('kubectl get pods')
     workerpodsall = int(sp.check_output(
     '''
@@ -356,8 +369,11 @@ def setKubeconfig(kwargs):
         if os.path.isfile(homeKube):
             os.environ['KUBECONFIG'] = homeKube
 
-def create_setK8SSenv(kwargs):
-    fname = "setK8SSenv.sh"
+def pods_on_nodes():
+    return oscmd("kubectl get pods -o wide|awk '{print $1,$3,\"on node\",$7}'") 
+
+def create_setEKSSenv(kwargs):
+    fname = "setEKSSenv.sh"
     filed = open(fname,"w")
     for evar in ['KUBECONFIG', 'LD_LIBRARY_PATH','PATH','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','CLUSTER_NAME']:
         filed.write("export %s=%s\n" % (evar,os.environ[evar]))
@@ -399,11 +415,10 @@ def getEKSClusters():
 def check_arn(kwargs):
     ''' See if arn exists. If not create '''
     ARN = "arn:aws:iam::%s:role/eksServiceRole" % kwargs['AWSACCT']
-#     ARN = "arn:aws:iam::539776273521:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport"
     strcmd = "aws iam list-roles|jq -r '.Roles[].Arn'|grep eksServiceRole"
     arn = cmd(strcmd)
     if ARN in arn:
-        print("ARN %s exists" % ARN)
+#         print("ARN %s exists" % ARN)
         return True
     ''' ARN does not exist -- create it '''
     print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account" % ARN)
@@ -434,7 +449,6 @@ def set_environ(kwargs):
         os.environ[envvar] = kwargs[envvar]
     for envvar in ['NODESDESIRED','MAXNODES']:
         os.environ[envvar] = str(kwargs[envvar])
-
     # Get paths right
     os.environ['LD_LIBRARY_PATH'] = "/usr/lib:/usr/local/lib" # Scanner needs this
     os.environ['PATH'] = os.environ['PATH'] + ":."
