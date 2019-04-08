@@ -1,6 +1,8 @@
 #!/bin/bash
 NUMINSVC=$(aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].Instances[].LifecycleState'|wc|awk '{print $1}')
 REPLICAS=$(expr $NUMINSVC - 1)
+SLEEP=10
+
 echo Changing k8s worker replicas to $REPLICAS "(Leave a node for the master)"
 kubectl scale deployment/scanner-worker --replicas=$REPLICAS
 
