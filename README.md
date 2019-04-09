@@ -13,7 +13,7 @@ Name the role 'eksServiceRole'. Make sure you attach 'AmazonEKSClusterPolicy' an
 
  2. Have your AWS account information and credentials at hand.
  
- 3. Create a vpc to run your EKS cluster in (if you don't already have one dedicated to that purpose). From an environment for which you have awscli tools installed (version >=1.16). Note your vpc name -- you will need it later.
+ 3. Create a vpc to run your EKS cluster in (if you don't already have one dedicated to that purpose). From an environment for which you have awscli tools installed (version >=1.16. There is a convenience script, awscli_setup.sh, in this repo to setup this version). Note your vpc name -- you will need it later.
  
 ```
 wget https://github.com/jblakley/ScannerEKSQS/raw/master/create_vpc.sh
