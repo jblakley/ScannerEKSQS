@@ -13,14 +13,14 @@ Name the role 'eksServiceRole'. Make sure you attach 'AmazonEKSClusterPolicy' an
 
  2. Have your AWS account information and credentials at hand.
  
- 3. Create a vpc to run your EKS cluster in (if you don't already have one dedicated to that purpose). From an environment for which you have awscli tools installed (version >=1.16)
+ 3. Create a vpc to run your EKS cluster in (if you don't already have one dedicated to that purpose). From an environment for which you have awscli tools installed (version >=1.16). Note your vpc name -- you will need it later.
  
 ```
 wget URL for create_vpc.sh
 bash create_vpc.sh
 ```
 
- 4. Create an AWS Ubuntu 16.04 instance in your EKS vpc to serve as your scanner client. The instance type is your choice -- a c4.2xlarge w/100GB of EBS storage seems to work well. SSH into that instance and 'sudo -i' to become root. You will likely need to configure your security groups to enable SSH access. Run the rest of the quickstart from that "scanner client" instance. Note down the VPC for that staging machine and name it something like "eks-vpc". You will need that name later.
+ 4. Create an AWS Ubuntu 16.04 instance in your EKS vpc to serve as your scanner client. The instance type is your choice -- a c4.2xlarge w/100GB of EBS storage seems to work well. SSH into that instance and 'sudo -i' to become root. You will likely need to configure your security groups to enable SSH access. Run the rest of the quickstart from that "scanner client" instance.
 
 The basic structure of ScannerEKSQS (and most Scanner EKS deployments) is a staging/client AWS instance, one EKS Master Node and one or more EKS Worker Nodes.
 
