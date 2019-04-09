@@ -23,7 +23,7 @@ test -z "$ISKEYNAME" && errorexit "Invalid KEYNAME $KEYNAME"
 
 
 # CHECK THE BUCKET
-BUCKETSTATUS=$(aws s3api head-bucket --bucket s3-scanner-utilities-1 2>&1)
+BUCKETSTATUS=$(aws s3api head-bucket --bucket $BUCKET 2>&1)
 test -n "$BUCKETSTATUS" && errorexit "Invalid BUCKET: $BUCKET"
 
 export PATH=$PATH:.
