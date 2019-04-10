@@ -5,4 +5,9 @@
 </pydev_pathproperty>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python interpreter</pydev_property>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
+<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+<path>/usr/local/lib/python3.5/dist-packages</path>
+<path>/root/.local</path>
+<path>/root/.local/lib/python3.5/site-packages</path>
+</pydev_pathproperty>
 </pydev_project>

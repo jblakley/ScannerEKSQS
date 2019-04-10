@@ -57,6 +57,9 @@ def main():
         parser.add_option("-H", "--halt",
                       action="store_true", dest="halt", default=False,
                       help="Halt the cluster by changing autoscaling group desired size to 0")  
+        parser.add_option("-T", "--smoke",
+                      action="store_true", dest="smoke", default=False,
+                      help="Try out your cluster by running a smoke test")
         parser.add_option( "-e", "--delete",
                       action="store_true", dest="delete", default=False,
                       help="delete the cluster")
@@ -122,6 +125,7 @@ def main():
         deleteCluster = options.delete
         scaleCluster = options.scale
         haltCluster = options.halt
+        runSmoke = options.smoke
 
         
         ''' Command line overrides '''
@@ -177,7 +181,8 @@ def main():
         if buildStaging is True:
             build_staging_machine(kwargs)
         ''' Check if any other tasks to do '''
-        if not createCluster and not buildDeployment and not deployCluster and not scaleCluster:
+        if not createCluster and not buildDeployment and \
+            not deployCluster and not scaleCluster and not runSmoke:
             print("No other tasks to do -- exiting")
             sys.exit(0)
         ''' Create a Cluster '''
@@ -208,6 +213,8 @@ def main():
             deploy_k8s(kwargs)
             wait_for_deployment()
             ''' Run a smoke test '''
+            run_smoke(kwargs)
+        elif runSmoke is True:
             run_smoke(kwargs)
         create_setEKSSenv(kwargs)
         print ("# Completed Processing --> Exiting")
@@ -267,10 +274,22 @@ def halt_cluster(kwargs):
 
 def run_smoke(kwargs):
     print("Running smoke test on cluster %s" % kwargs['CLUSTER_NAME'])
+    get_media(kwargs)
     cmdstr = ("python3 smoketest.py")
     retcode = oscmd(cmdstr)    # Need to check for success
     return retcode
-    
+
+def get_media(kwargs):
+    example_video_path = 'star_wars_heros.mp4'
+    ''' Get the media locally '''
+    if not os.path.isfile(example_video_path):
+        print("File does not exist: %s" % example_video_path)
+        retcode = oscmd("wget https://storage.googleapis.com/scanner-data/tutorial_assets/star_wars_heros.mp4")
+    ''' Put the media in AWS bucket '''
+    retcode = oscmd("aws s3 ls s3://%s/%s" % (kwargs['BUCKET'],example_video_path))
+    if retcode != 0:
+        retcode = oscmd("aws s3 cp %s s3://%s" % (example_video_path, kwargs['BUCKET']))
+
 def create_config(configJSON):
     print("Configuration file %s does not exist. You'll now need to create one" % configJSON)
     inputdict = {
