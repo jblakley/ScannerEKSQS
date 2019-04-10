@@ -17,10 +17,8 @@ if not os.path.isfile(example_video_path):
         wget https://storage.googleapis.com/scanner-data/tutorial_assets/star_wars_heros.mp4
         ''',
         shell=True).strip().decode('utf-8')
-
 else:
     print("Using: %s" % example_video_path)
-    
 
 print('Finding master IP...')
 ip = sp.check_output(
@@ -57,7 +55,7 @@ db = Database(
 
 print('Running Scanner job...')
 # example_video_path = 'star_wars_heros.mp4'
-
+print(db.summarize())
 
 [input_table], _ = db.ingest_videos(
     [('example', example_video_path)], force=True, inplace=True)
