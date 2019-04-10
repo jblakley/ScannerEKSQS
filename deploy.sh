@@ -1,5 +1,9 @@
 #!/bin/bash
 ### 0. Things to do up front (Blakley)
+# Also done in create but allows reseting of bucket during deployment TODO -- remove from create
+sed "s|<BUCKET>|$BUCKET|g;s|<REGION>|$REGION|g" scanner-config.yaml.template > scanner-config.yml
+kubectl apply -f scanner-config.yml
+sed "s|<BUCKET>|$BUCKET|g;s|<REGION>|$REGION|g" config.toml.template > config.toml
 
 echo KUBECONFIG=$KUBECONFIG
 kubectl apply -f scanner-config.yml # In case of changes -- already done on cluster create
