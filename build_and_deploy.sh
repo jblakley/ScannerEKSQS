@@ -20,7 +20,7 @@ test -z "$REGION" && \
 	REGION=us-east-1
 
 test -z "$CONTAINER_TAG" && \
-	export CONTAINER_TAG=jpablomch/scanner-aws:latest
+	export CONTAINER_TAG=jpablomch/scanner-aws:v1-2
 
 # Create the number of replicas == number of k8s nodes minus 1 for the master
 test -z "$NODESDESIRED" && \

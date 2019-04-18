@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Configure aws
 test -z "$AWS_ACCESS_KEY_ID" && aws configure
 
@@ -58,7 +59,11 @@ sudo apt-get install -y \
 
 pip3 install numpy
 
-GITVERSION=0f5971c7c4694505d2e2af0f42fec2116ca6f298
+#GITVERSION=0f5971c7c4694505d2e2af0f42fec2116ca6f298
+
+# I am using the version from April 16. The version above is from Sep. 18!
+GITVERSION=db25d7c7109d31f30e4234c51ac784938f620138
+
 cd /opt
 git clone https://github.com/scanner-research/scanner.git
 cd scanner
