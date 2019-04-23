@@ -292,10 +292,20 @@ def get_media(kwargs):
 
 def create_config(configJSON):
     print("Configuration file %s does not exist. You'll now need to create one" % configJSON)
+    
+    ''' grab the region from the aws config file if it exists '''
+    region = "NONE"
+    homedir = os.environ['HOME']
+    if os.environ['USER'] == 'root' and homedir != '/root':
+        homedir = '/root'
+    cmdstr = "grep region %s/.aws/config|awk '{print $3}'" % homedir
+    retcmd = cmd(cmdstr)
+    if retcmd is not None and len(retcmd) > 0:
+        region = retcmd[0]
     inputdict = {
         "maxNodes":("INT","Enter maximum number of nodes for the cluster",2 ),
         "nodesDesired":("INT","Enter desired number of nodes for the cluster",2 ),
-        "region":("STR","Enter your AWS Region","NONE" ),
+        "region":("STR","Enter your AWS Region",region ),
         "account":("STR","Enter your AWS Account Number","NONE" ),
         "clusterName":("STR","Enter the cluster name","NONE" ),
         "VPC_STACK_NAME":("STR","Enter your VPC_STACK_NAME","eks-vpc" ),
