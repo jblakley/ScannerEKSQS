@@ -59,10 +59,7 @@ sudo apt-get install -y \
 
 pip3 install numpy
 
-#GITVERSION=0f5971c7c4694505d2e2af0f42fec2116ca6f298
-
-# I am using the version from April 16. The version above is from Sep. 18!
-GITVERSION=db25d7c7109d31f30e4234c51ac784938f620138
+GITVERSION=322d8e8afff176c759a3ebac90255c9495ace035
 
 cd /opt
 git clone https://github.com/scanner-research/scanner.git
@@ -75,3 +72,6 @@ cmake ..
 make -j$(nproc)
 cd ..
 bash ./build.sh
+cd /opt/scanner/examples/tutorials/resize_op
+cmake .
+make -j$(nproc)
