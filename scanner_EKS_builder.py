@@ -309,7 +309,7 @@ def create_config(configJSON):
         "account":("STR","Enter your AWS Account Number","NONE" ),
         "clusterName":("STR","Enter the cluster name","NONE" ),
         "VPC_STACK_NAME":("STR","Enter your VPC_STACK_NAME","eks-vpc" ),
-        "CONTAINER_TAG":("STR","Enter the TAG for your worker container","jpablomch/scanner-aws:v1-2"),
+        "CONTAINER_TAG":("STR","Enter the TAG for your worker container","jpablomch/scanner-aws:latest"),
         "BUCKET":("STR","Enter your AWS Bucket Name for scannerdb","NONE"),
         "KEYNAME":("STR","Enter the name of your AWS SSH KEY","NONE"),
         "INSTANCE_TYPE":("STR","Enter the worker and master instance type","c4.8xlarge")

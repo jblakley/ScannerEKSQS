@@ -5,6 +5,6 @@
 	"account":"601041732504",
 	"clusterName":"jrbQStest2",
 	"VPC_STACK_NAME":"eks-vpc",
-	"CONTAINER_TAG":"jpablomch/scanner-aws:v1-2",
+	"CONTAINER_TAG":"jpablomch/scanner-aws:latest",
 	"BUCKET":"s3-scanner-utilities-1"
 }

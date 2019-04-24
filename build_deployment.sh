@@ -17,7 +17,7 @@ test -z "$AWS_SECRET_ACCESS_KEY" && \
 	(echo "Could not find AWS_SECRET_ACCESS_KEY";exit 1)
 	
 test -z "$REGION" && REGION=us-east-1
-test -z "$CONTAINER_TAG" && export CONTAINER_TAG=jpablomch/scanner-aws:v1-2
+test -z "$CONTAINER_TAG" && export CONTAINER_TAG=jpablomch/scanner-aws:latest
 
 ### 1. Check if container repo exists
 aws ecr describe-repositories --repository-names scanner
