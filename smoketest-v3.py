@@ -1,17 +1,5 @@
-# TODO: Remove v1-2? Tested with v3
 
-import argparse
-
-parser = argparse.ArgumentParser(description='Smoke Test Scanner QuickStart')
-parser.add_argument('-v2', action='store_true',
-                    help='Sequencial node id', default=False)
-
-args = parser.parse_args()
-
-if args.v2:
-    from scannerpy import Database, DeviceType, Job
-else:
-    import scannerpy as scan
+import scannerpy as scan
 
 import os.path
 import subprocess as sp
@@ -56,19 +44,11 @@ if __name__ == '__main__':
         f.write(config_text)
 
     print('Connecting to Scanner database/client...')
-    db = None
-    if args.v2:
-        db = Database(
-            master=master,
-            start_cluster=False,
-            config_path='./config.toml',
-            grpc_timeout=60)
-    else:
-        db = scan.Client(
-            master=master,
-            start_cluster=False,
-            config_path='./config.toml',
-            grpc_timeout=60)
+    db = scan.Client(
+        master=master,
+        start_cluster=False,
+        config_path='./config.toml',
+        grpc_timeout=60)
 
 
     print('Running Scanner job...')
@@ -79,37 +59,18 @@ if __name__ == '__main__':
             "/opt/scanner/examples/tutorials/resize_op/resize_pb2.py")
 
 
-    if args.v2:
-        pass
-        # TODO FIX or REMOVE
-        # [input_table], _ = db.ingest_videos(
-        #     [('example', example_video_path)], force=True, inplace=True)
-         #
-        # frame = db.sources.FrameColumn()
-        # r_frame = db.ops.Resize(frame=frame, width=320, height=240)
-        # output_op = db.sinks.Column(columns={'frame': r_frame})
-        # job = Job(op_args={
-        #     frame: db.table('example').column('frame'),
-        #     output_op: 'example_frame'
-        # })
+    input_stream = scan.NamedVideoStream(db, 'example', path=example_video_path)
 
-        # output_tables = db.run(output=output_op, jobs=[job], force=True)
-        #
-        # output_tables[0].column('frame').save_mp4('resized_video')
+    frames = db.io.Input([input_stream])
 
-    else:
-        input_stream = scan.NamedVideoStream(db, 'example', path=example_video_path)
+    resized_frames = db.ops.MyResize(frame=frames, width=640, height=480)
 
-        frames = db.io.Input([input_stream])
+    output_stream = scan.NamedVideoStream(db, 'example-resized')
+    output = db.io.Output(resized_frames, [output_stream])
+    db.run(output, scan.PerfParams.estimate(), cache_mode=scan.CacheMode.Ignore)
 
-        resized_frames = db.ops.MyResize(frame=frames, width=640, height=480)
+    output_stream.save_mp4('resized-video')
 
-        output_stream = scan.NamedVideoStream(db, 'example-resized')
-        output = db.io.Output(resized_frames, [output_stream])
-        db.run(output, scan.PerfParams.estimate(), cache_mode=scan.CacheMode.Ignore)
+    print(db.summarize())
 
-        output_stream.save_mp4('resized-video')
-
-print(db.summarize())
-
-print('Complete!')
+    print('Complete!')
