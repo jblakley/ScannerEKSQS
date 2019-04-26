@@ -275,7 +275,7 @@ def halt_cluster(kwargs):
 def run_smoke(kwargs):
     print("Running smoke test on cluster %s" % kwargs['CLUSTER_NAME'])
     get_media(kwargs)
-    cmdstr = ("python3 smoketest.py")
+    cmdstr = ("python3 smoketest-v3.py")
     retcode = oscmd(cmdstr)    # Need to check for success
     return retcode
 

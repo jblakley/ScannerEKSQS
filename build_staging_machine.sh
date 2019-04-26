@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Configure aws
 test -z "$AWS_ACCESS_KEY_ID" && aws configure
 
@@ -58,7 +59,8 @@ sudo apt-get install -y \
 
 pip3 install numpy
 
-GITVERSION=0f5971c7c4694505d2e2af0f42fec2116ca6f298
+GITVERSION=322d8e8afff176c759a3ebac90255c9495ace035
+
 cd /opt
 git clone https://github.com/scanner-research/scanner.git
 cd scanner
@@ -70,3 +72,6 @@ cmake ..
 make -j$(nproc)
 cd ..
 bash ./build.sh
+cd /opt/scanner/examples/tutorials/resize_op
+cmake .
+make -j$(nproc)
