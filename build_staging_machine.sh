@@ -75,3 +75,5 @@ bash ./build.sh
 cd /opt/scanner/examples/tutorials/resize_op
 cmake .
 make -j$(nproc)
+
+sudo apt-get install --yes --no-install-recommends libjsoncpp-dev
