@@ -296,17 +296,21 @@ def create_config(configJSON):
     ''' grab the region from the aws config file if it exists '''
     region = "NONE"
     homedir = os.environ['HOME']
+
     if os.environ['USER'] == 'root' and homedir != '/root':
         homedir = '/root'
     cmdstr = "grep region %s/.aws/config|awk '{print $3}'" % homedir
     retcmd = cmd(cmdstr)
     if retcmd is not None and len(retcmd) > 0:
         region = retcmd[0]
+    retcmd = cmd("aws sts get-caller-identity --output text --query 'Account'")
+    if retcmd is not None and len(retcmd) > 0:
+        account = retcmd[0]
     inputdict = {
         "maxNodes":("INT","Enter maximum number of nodes for the cluster",2 ),
         "nodesDesired":("INT","Enter desired number of nodes for the cluster",2 ),
         "region":("STR","Enter your AWS Region",region ),
-        "account":("STR","Enter your AWS Account Number","NONE" ),
+        "account":("STR","Enter your AWS Account Number",account ),
         "clusterName":("STR","Enter the cluster name","NONE" ),
         "VPC_STACK_NAME":("STR","Enter your VPC_STACK_NAME","eks-vpc" ),
         "CONTAINER_TAG":("STR","Enter the TAG for your worker container","jpablomch/scanner-aws:latest"),
