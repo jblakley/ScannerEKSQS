@@ -1,0 +1,47 @@
+FROM jpablomch/scanner-base:ubuntu16.04-cpu
+MAINTAINER Pablo Munoz <pablo.munoz@intel.com>
+
+WORKDIR /opt
+ENV Caffe_DIR /usr/local
+ENV LD_LIBRARY_PATH \
+       "/usr/lib/x86_64-linux-gnu:/usr/local/cuda/lib64:$LD_LIBRARY_PATH:/usr/local/cuda/lib64/stubs"
+ENV PKG_CONFIG_PATH "/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+# ADD VDMS SUPPORT
+RUN mkdir -p /opt/vdms/client/cpp/comm
+COPY --from=jpablomch/vdms:proto3.6.1 /vdms/client/cpp/*.so /opt/vdms/client/cpp
+COPY --from=jpablomch/vdms:proto3.6.1 /vdms/client/cpp/*.h /opt/vdms/client/cpp
+COPY --from=jpablomch/vdms:proto3.6.1 /vdms/utils/include/comm/ /opt/vdms/client/cpp/comm
+COPY --from=jpablomch/vdms:proto3.6.1 /vdms/utils/*.so /opt/vdms/client/cpp
+
+RUN apt-get install --yes --no-install-recommends libjsoncpp-dev && \
+    git clone https://github.com/scanner-research/scanner.git && \
+    cd scanner && \
+    git checkout 67b8972b8b6b025334f316dca9583fdcf5f753e4 && \
+    (bash deps.sh --install-none --prefix /usr/local ${deps_opt}) && \
+    mkdir build && cd build && \
+    cmake -D BUILD_IMGPROC_OPS=ON \
+          -D BUILD_VDMS_OPS=ON \
+          -D BUILD_CAFFE_OPS=OFF \
+          -D BUILD_OPENFACE_OPS=OFF \
+          -D BUILD_TESTS=OFF \
+          -D BUILD_CUDA=${gpu} \
+          -D CMAKE_BUILD_TYPE=RelWithDebinfo \
+          .. && \
+    cd .. && \
+    (yes | pip3 uninstall grpcio protobuf) && \
+    (yes | pip3 install vdms) && \
+    ./build.sh && \
+    ldconfig && \
+    # Reduce size of image
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    #Resize operator for smoketest
+    cd /opt/scanner/examples/tutorials/resize_op && \
+    cmake . && \
+    make -j8 && \
+    # Spark
+    pip3 install numpy pyarrow pandas
+
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
