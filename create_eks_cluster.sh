@@ -9,7 +9,7 @@ function errorexit {
 
 # Set up parameters -- if not set in environment, prompt to get them TODO
 
-test -z "$AMI" && export AMI=$(aws ec2 describe-images --filters Name='name',Values='eks-worker-v20'|jq -r '.Images[].ImageId')
+test -z "$AMI" && export AMI=$(aws ec2 describe-images --filters Name='name',Values='EKS-HermesPeakWorker-3'|jq -r '.Images[].ImageId')
 
 for envvar in "VPC_STACK_NAME" "AWSACCT" "INSTANCE_TYPE" "MAXNODES" "NODESDESIRED" "AMI" "KEYNAME" "BUCKET" "REGION"
 do
