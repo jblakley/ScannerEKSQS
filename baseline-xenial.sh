@@ -36,4 +36,4 @@ cd ~/git
 test -d ScannerEKSQS || git clone -b $BRANCH https://github.com/jblakley/ScannerEKSQS
 
 cd $QSHOME
-python3 ./scanner_EKS_builder.py --staging
+# python3 ./scanner_builder.py --staging
