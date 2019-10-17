@@ -11,8 +11,6 @@ import yaml
 from tqdm import tqdm
 
 from HPEKSutils import *
-from awscli.customizations.emr.constants import FALSE
-
 
 SLEEPTIME = 10
 

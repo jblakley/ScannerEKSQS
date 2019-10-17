@@ -1,0 +1,64 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: scanner-worker
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: scanner-worker
+    spec:
+      volumes:
+       - name: scanner-config
+         configMap:
+           name: scanner-configmap
+       - name: efs-pvc
+         persistentVolumeClaim:
+           claimName: efs
+       - name: efs-sdb-pvc
+         persistentVolumeClaim:
+           claimName: efs-sdb
+      containers:
+        - name: scanner-worker
+          image: <AWSACCT>.dkr.ecr.us-east-1.amazonaws.com/scanner:scanner-worker
+          imagePullPolicy: Always
+#          lifecycle:
+#            postStart:
+#              exec:               
+#                command: ["install", "-d", "-m", "777","/root/.scanner"]     
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-storage-key
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-storage-key
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: GLOG_logtostderr
+              value: '1'
+            - name: GLOG_minloglevel
+              value: '0'
+            - name: GLOG_v
+              value: '2'
+          resources:
+            requests:
+              cpu: 2
+          volumeMounts:
+            - name: efs-sdb-pvc
+              mountPath: /root/.scanner
+            - name: efs-pvc
+              mountPath: /efsc
+#            - name: efs-sdb-pvc
+#              mountPath: /efs-sdb
+      nodeSelector:
+          alpha.eksctl.io/nodegroup-name: Scanner              
+

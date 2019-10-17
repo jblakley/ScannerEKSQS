@@ -1,0 +1,3 @@
+[storage]
+type = "posix"
+db_path = "/root/.scanner/db"

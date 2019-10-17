@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+data:
+  config.toml: |
+    [storage]
+    type = "s3"
+    bucket = "<BUCKET>"
+    db_path = "spark_db"
+    region = "<REGION>"
+    endpoint = "s3.<REGION>.amazonaws.com"
+
+metadata:
+  name: spark-configmap

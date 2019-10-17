@@ -1,0 +1,41 @@
+{
+	"DBTYPE": "EFS",
+	"BUCKET": "s3-scanner-utilities-1",
+	"CONTAINER_TAG": "scannerresearch/scannertools:cpu-latest",
+	"KEYNAME": "ISTC-VCS1-JRB",
+	"REGION": "us-east-1",
+	"VPC_STACK_NAME": "eks-vpc2",
+	"AWSACCT": "601041732504",
+	"CLUSTERNAME": "HERMESPEAKQS3",
+	"NODEGROUP_LABEL":"alpha.eksctl.io/nodegroup-name",
+	"SPARKON":true,
+	"SCANNERON":true,
+	"VDMSON":true,
+	"EFSON":true,
+	"NodeGroups": [
+		{
+			"GROUPNAME": "Scanner",
+			"INSTANCE_TYPE": "c4.8xlarge",
+			"ISON":true,
+			"maxNodes": 2,
+			"desiredNodes": 2,
+			"CONTAINER_TAG": "scannerresearch/scannertools:cpu-latest"
+		},
+		{
+			"GROUPNAME": "Spark",
+			"INSTANCE_TYPE": "m4.xlarge",
+			"ISON":true,			
+			"maxNodes": 4,
+			"desiredNodes": 4,		
+			"CONTAINER_TAG": "601041732504.dkr.ecr.us-east-1.amazonaws.com/spark:V130"
+		},
+		{
+			"GROUPNAME": "Vdms",
+			"INSTANCE_TYPE": "m4.xlarge",
+			"ISON":true,			
+			"maxNodes": 1,
+			"desiredNodes": 1,		
+			"CONTAINER_TAG": "intellabs/vdms:base"
+		}		
+	]
+}
