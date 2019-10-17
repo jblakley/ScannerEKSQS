@@ -79,8 +79,8 @@ def main():
         if configJSON is None:
             configJSON = CONFIGFILE
         
-        if not os.path.isfile(configJSON):
-            create_config(configJSON)
+#         if not os.path.isfile(configJSON):
+#             create_config(configJSON)
         kwargs = {}
         with open(configJSON) as jfile:
             kwargs = json.load(jfile)
@@ -118,10 +118,13 @@ def main():
             sys.exit(0)
 
         ''' Check if any other tasks to do '''
-        if not createCluster and not buildDeployment and \
+        if not createCluster and not buildDeployment and not buildStaging and \
             not deployCluster and not runSmoke:
             print("No other tasks to do -- exiting")
             sys.exit(0)
+        ''' Build a staging machine '''
+        if buildStaging:
+            build_staging(kwargs)
         ''' Create a Cluster '''
         if createCluster is True:
             create_cluster(kwargs)            
@@ -146,7 +149,20 @@ def main():
     except KeyboardInterrupt:
         sys.exit(0)
         
-''' Application Functions '''        
+''' Application Functions '''
+def build_staging(kwargs):
+    ''' Docker '''
+    oscmd("apt install -y apt-transport-https ca-certificates curl software-properties-common")
+    oscmd("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
+    rel = cmd0("lsb_release -cs")
+    oscmd("add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu %s stable'" % rel)
+    oscmd("apt update && apt install -y docker-ce")
+    oscmd("usermod -a -G docker %s" % os.environ['USER'])
+    
+    
+    
+
+
 def create_cluster(kwargs):
     cn = kwargs['CLUSTERNAME']
     if isEKSCluster(cn):
@@ -243,10 +259,6 @@ def createClusterConfig(kwargs,fname):
     with open(fname, 'w', encoding='utf8') as stream:
         yaml.dump(templated, stream, default_flow_style=False, allow_unicode=True) 
 
-''' one liners '''
-def stackstat(stackname):
-    return cmd0("aws cloudformation describe-stacks|jq -r '.Stacks[] | select(.StackName == \"%s\") | .StackStatus'" % stackname)
-
 def connect_efs(kwargs):
     print("Connected Elastic File Store")
     cmdstr = ("bash %s ./connect_efs.sh" % getDBGSTR())
@@ -274,7 +286,7 @@ def build_deployment(kwargs):
         oscmd('docker build --no-cache -t %s:scanner-client . -f Dockerfile.client' % REPO_URI)        
         oscmd('aws configure set default.region %s' % kwargs['REGION'])
         LOGIN_CMD=cmd0('aws ecr get-login --no-include-email')
-ls        oscmd('eval %s' % LOGIN_CMD)
+        oscmd('eval %s' % LOGIN_CMD)
         oscmd('docker push %s:scanner-master' % REPO_URI)
         oscmd('docker push %s:scanner-worker' % REPO_URI)
         oscmd('docker push %s:scanner-client' % REPO_URI)        
