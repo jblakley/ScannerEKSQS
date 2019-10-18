@@ -432,7 +432,6 @@ def deploy(kwargs):
         if 'VDMSON' in kwargs and kwargs['VDMSON']:
             deployVDMS(kwargs)
 
-
 def deploySpark(kwargs):
     print("Deploying Spark %s" % kwargs['CLUSTERNAME'])
     cmdstr = ("bash %s ./deploySpark.sh" % getDBGSTR())
