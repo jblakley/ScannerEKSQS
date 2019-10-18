@@ -130,6 +130,7 @@ def main():
         if buildStaging:
             installScanner(kwargs)
             os.chdir(origdir)
+            oscmd("banner run local smoke test")  
             runPyProg("smokescanner-local-v1.py")
         ''' Create a Cluster '''
         if createCluster is True:
@@ -262,7 +263,7 @@ def installScannerTools(kwargs):
         os.chdir('..')
 def buildScannerOperators(kwargs):
     ''' Resize '''
-    oscmd("banner build scanner operators")    
+    oscmd("banner build scanner ops")    
     reszdir = "/opt/scanner/examples/tutorials/resize_op/"
     nproc = cmd0("nproc")
     curdir = os.getcwd()
