@@ -2,7 +2,7 @@
 ## Configure Ubuntu 16.04 Instance AWS for EKS and Scanner
 ## Must be root
 apt update
-apt install python3-pip jq -y
+apt install python3-pip jq git -y
 pip3 install tqdm
 
 QSHOME=~/git/ScannerEKSQS
