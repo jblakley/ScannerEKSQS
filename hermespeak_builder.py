@@ -151,18 +151,85 @@ def main():
         
 ''' Application Functions '''
 def build_staging(kwargs):
+    ''' General installs '''
+    aptlst  = ['jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev']
+    piplst = ['numpy']
+    aptUpdate()
+    aptInstall(aptlst,"")
+    pipInstall(piplst,"")
+    
     ''' Docker '''
-    oscmd("apt install -y apt-transport-https ca-certificates curl software-properties-common")
     oscmd("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
     rel = cmd0("lsb_release -cs")
     oscmd("add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu %s stable'" % rel)
-    oscmd("apt update && apt install -y docker-ce")
+    aptUpdate()
+    aptInstall(['docker-ce'],"")    
     oscmd("usermod -a -G docker %s" % os.environ['USER'])
     
+    ''' Upgrade awscli '''
+    pipInstall(['awscli'],"--upgrade --user")
     
+    ''' Kubectl '''
+    if not os.path.isfile("/etc/apt/sources.list.d/kubernetes.list"):
+        oscmd("curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -")
+        oscmd("touch /etc/apt/sources.list.d/kubernetes.list")
+        oscmd("echo \"deb http://apt.kubernetes.io/ kubernetes-xenial main\" | tee -a /etc/apt/sources.list.d/kubernetes.list")
+    aptUpdate()
+    aptInstall(['kubectl'],"")
+
+    ''' Install heptio auth '''
+    heptauth =  "heptio-authenticator-aws"
+    oscmd("curl -o %s https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/linux/amd64/%s" % (heptauth,heptauth))
+    oscmd("chmod +x %s" % heptauth)
+    bindir = os.path.join(os.environ['HOME'],"bin")
+    if not os.path.isdir(bindir):
+        os.mkdir(bindir)
+    heptauthdst = os.path.join(bindir,heptauth)
+    if not os.path.isfile(heptauthdst):
+        shutil.copy2(heptauth,heptauthdst)
+    bashrcpath = os.path.join(os.environ['HOME'],".bashrc")
+    oscmd("echo 'export PATH=$HOME/bin:$PATH' >> %s" % bashrcpath)
+    os.environ['PATH'] = os.environ['PATH'] + ":" + bindir
     
+    ''' Install Scanner '''
+    installScanner(kwargs)
+    
+def installScanner(kwargs):
+    ''' Dependencies '''
+    deplist = ["build-essential",
+        "cmake","git","libgtk2.0-dev","pkg-config","unzip","llvm-5.0-dev","clang-5.0","libc++-dev",
+        "libgflags-dev","libgtest-dev","libssl-dev","libcurl3-dev","liblzma-dev",
+        "libeigen3-dev","libgoogle-glog-dev","libatlas-base-dev","libsuitesparse-dev",
+        "libgflags-dev","libx264-dev","libopenjpeg-dev","libxvidcore-dev",
+        "libpng-dev","libjpeg-dev","libbz2-dev","wget",
+        "libleveldb-dev","libsnappy-dev","libhdf5-serial-dev","liblmdb-dev","python-dev",
+        "python-tk","autoconf","autogen","libtool","libtbb-dev","libopenblas-dev",\
+        "liblapacke-dev","swig","yasm","python3.5","python3-pip","cpio","automake","libass-dev",
+        "libfreetype6-dev","libsdl2-dev","libtheora-dev","libtool",
+        "libva-dev","libvdpau-dev","libvorbis-dev","libxcb1-dev","libxcb-shm0-dev",
+        "libxcb-xfixes0-dev","mercurial","texinfo","zlib1g-dev","curl","libcap-dev",
+        "libboost-all-dev","libgnutls-dev","libpq-dev","postgresql"]
+    aptInstall(deplist,"")
+    scannerhome = "/opt/scanner"
+    if not os.path.isdir(scannerhome):
+        oscmd("git clone https://github.com/scanner-research/scanner %s" % scannerhome)
+    os.chdir(scannerhome)
+    oscmd("bash ./deps.sh -a --prefix /usr/local")
+    if not os.path.isdir("build"):
+        os.mkdir("build")
+    os.chdir("build")
+    nproc = cmd0("nproc")
+    oscmd("cmake .. && make -j%s" % nproc)
+    os.chdir(scannerhome)
+    oscmd("bash ./build.sh")
+    pass
 
-
+def aptUpdate():
+    oscmd("apt update")
+def aptInstall(lst,args):
+    oscmd("apt install -y %s %s" % (args,' '.join(lst)))
+def pipInstall(lst,args):
+    oscmd("pip3 install %s %s" % (args,' '.join(lst)))
 def create_cluster(kwargs):
     cn = kwargs['CLUSTERNAME']
     if isEKSCluster(cn):
