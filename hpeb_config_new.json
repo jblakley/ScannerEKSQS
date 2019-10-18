@@ -23,7 +23,7 @@
 		{
 			"GROUPNAME": "Spark",
 			"INSTANCE_TYPE": "m4.xlarge",
-			"ISON":true,			
+			"ISON":false,			
 			"maxNodes": 4,
 			"desiredNodes": 4,		
 			"CONTAINER_TAG": "601041732504.dkr.ecr.us-east-1.amazonaws.com/spark:V130"
@@ -31,7 +31,7 @@
 		{
 			"GROUPNAME": "Vdms",
 			"INSTANCE_TYPE": "m4.xlarge",
-			"ISON":true,			
+			"ISON":false,			
 			"maxNodes": 1,
 			"desiredNodes": 1,		
 			"CONTAINER_TAG": "intellabs/vdms:base"
