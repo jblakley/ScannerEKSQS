@@ -7,7 +7,7 @@ import time
 import json
 import datetime
 import shlex, subprocess
-
+from tqdm import tqdm
 
 SLEEPTIME = 10
 
