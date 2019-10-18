@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import scannerpy as scan
 import scannertools.face_detection
+import scannertools.vis
+import scannertools.imgproc
 
 import os.path
 import subprocess as sp

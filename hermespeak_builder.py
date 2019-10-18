@@ -168,7 +168,6 @@ def build_staging(kwargs):
     pipInstall(piplst,"")
     
     oscmd("banner build staging machine")
-    
     ''' Docker '''
     oscmd("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -")
     rel = cmd0("lsb_release -cs")
@@ -207,6 +206,7 @@ def build_staging(kwargs):
     oscmd("mv /tmp/eksctl /usr/local/bin && eksctl version")
     
 def installScanner(kwargs):
+    oscmd("banner install scanner")
     ''' Dependencies '''
     deplist = ["build-essential",
         "cmake","git","libgtk2.0-dev","pkg-config","unzip","llvm-5.0-dev","clang-5.0","libc++-dev",
@@ -240,8 +240,14 @@ def installScanner(kwargs):
     installScannerTools(kwargs)
     ''' Build Special Scanner Operators '''
     buildScannerOperators(kwargs)
+    ''' Final cleanups '''
+    oscmd("chmod +x /usr/local/lib/libstorehouse.so")
+    os.environ['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH'] + ':/usr/local/lib'
+    oscmd("echo LD_LIBRARY_PATH=%s >> %s" % (os.environ['LD_LIBRARY_PATH'],
+                                             os.path.join(os.environ['HOME'],".bashrc")))
 
 def installScannerTools(kwargs):
+    oscmd("banner install scannertools")
     scannertools = "/opt/scannertools"
     if not os.path.isdir(scannertools):
         oscmd("git clone https://github.com/scanner-research/scannertools %s" % scannertools)
@@ -253,21 +259,15 @@ def installScannerTools(kwargs):
         os.chdir('..')
 def buildScannerOperators(kwargs):
     ''' Resize '''
+    oscmd("banner build scanner operators")    
     reszdir = "/opt/scanner/examples/tutorials/resize_op/"
     nproc = cmd0("nproc")
     curdir = os.getcwd()
     
     os.chdir(reszdir)
     oscmd("cmake . && make -j%s" % nproc)
-
     os.chdir(curdir)
     
-def aptUpdate():
-    oscmd("apt update")
-def aptInstall(lst,args):
-    oscmd("apt install -y %s %s" % (args,' '.join(lst)))
-def pipInstall(lst,args):
-    oscmd("pip3 install %s %s" % (args,' '.join(lst)))
 def create_cluster(kwargs):
     cn = kwargs['CLUSTERNAME']
     if isEKSCluster(cn):
@@ -546,15 +546,17 @@ def get_media(kwargs):
     ''' Get the media locally '''
     if not os.path.isfile(example_video_path):
         print("File does not exist: %s" % example_video_path)
-        retcode = oscmd("wget https://storage.googleapis.com/scanner-data/tutorial_assets/star_wars_heros.mp4")
-    ''' Put the media in AWS bucket '''
-    retcode = oscmd("aws s3 ls s3://%s/%s" % (kwargs['BUCKET'],example_video_path))
-    if retcode != 0:
-        retcode = oscmd("aws s3 cp %s s3://%s" % (example_video_path, kwargs['BUCKET']))
+        oscmd("wget https://storage.googleapis.com/scanner-data/tutorial_assets/star_wars_heros.mp4")
 
 ''' one liners '''
 def stackstat(stackname):
     return cmd0("aws cloudformation describe-stacks|jq -r '.Stacks[] | select(.StackName == \"%s\") | .StackStatus'" % stackname)
+def aptUpdate():
+    oscmd("apt update")
+def aptInstall(lst,args):
+    oscmd("apt install -y %s %s" % (args,' '.join(lst)))
+def pipInstall(lst,args):
+    oscmd("pip3 install %s %s" % (args,' '.join(lst)))
 
 def getDBGSTR():
     if debugOn:
