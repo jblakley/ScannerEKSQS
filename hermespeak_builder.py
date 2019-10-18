@@ -43,12 +43,6 @@ def main():
         parser.add_option("-S", "--staging",
                       action="store_true", dest="staging", default=False,
                       help="Make this instance a staging machine")
-        parser.add_option("-G", "--scale",
-                      action="store_true", dest="scale", default=False,
-                      help="Scale the cluster and deployment to specified desired nodes (with -n option)")
-        parser.add_option("-H", "--halt",
-                      action="store_true", dest="halt", default=False,
-                      help="Halt the cluster by changing autoscaling group desired size to 0")  
         parser.add_option("-T", "--smoke",
                       action="store_true", dest="smoke", default=False,
                       help="Try out your cluster by running a smoke test")
