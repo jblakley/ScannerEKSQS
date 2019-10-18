@@ -55,7 +55,7 @@ def main():
     
     for output_stream in outstreamlist:
         if os.path.isdir(EFSR):
-            sname = os.path.join(EFSR,output_stream.name())
+            sname = os.path.join(".",output_stream.name())
             print("Saving %s" % sname)
             output_stream.save_mp4(sname)
 
