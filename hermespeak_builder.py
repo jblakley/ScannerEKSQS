@@ -154,6 +154,13 @@ def main():
         
 ''' Application Functions '''
 def build_staging(kwargs):
+
+    ''' Upfront configure '''
+    if not 'USER' in os.environ:
+        os.environ['USER'] = "root"
+    if not 'HOME' in os.environ:
+        os.environ['HOME'] = "/root"
+   
     ''' General installs '''
     aptlst  = ['vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev']
     piplst = ['numpy','tqdm']
