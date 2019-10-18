@@ -191,8 +191,16 @@ def build_staging(kwargs):
     oscmd("echo 'export PATH=$HOME/bin:$PATH' >> %s" % bashrcpath)
     os.environ['PATH'] = os.environ['PATH'] + ":" + bindir
     
+    ''' EKSCTL '''
+    oscmd("curl --silent --location \"https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz\" | tar xz -C /tmp")
+    oscmd("mv /tmp/eksctl /usr/local/bin && eksctl version")
+    
     ''' Install Scanner '''
     installScanner(kwargs)
+    ''' Install ScannerTools '''
+    installScannerTools(kwargs)
+    ''' Build Special Scanner Operators '''
+    buildScannerOperators(kwargs)
     
 def installScanner(kwargs):
     ''' Dependencies '''
@@ -222,8 +230,28 @@ def installScanner(kwargs):
     oscmd("cmake .. && make -j%s" % nproc)
     os.chdir(scannerhome)
     oscmd("bash ./build.sh")
-    pass
 
+def installScannerTools(kwargs):
+    scannertools = "/opt/scannertools"
+    if not os.path.isdir(scannertools):
+        oscmd("git clone https://github.com/scanner-research/scannertools %s" % scannertools)
+    os.chdir(scannertools)    
+    toollst = ['scannertools_infra','scannertools','scannertools_caffe']
+    for tool in toollst:
+        os.chdir(tool)
+        pipInstall(['.'], "--user -e .")
+        os.chdir('..')
+def buildScannerOperators(kwargs):
+    ''' Resize '''
+    reszdir = "/opt/scanner/examples/tutorials/resize_op/"
+    nproc = cmd0("nproc")
+    curdir = os.getcwd()
+    
+    os.chdir(reszdir)
+    oscmd("cmake . && make -j%s" % nproc)
+
+    os.chdir(curdir)
+    
 def aptUpdate():
     oscmd("apt update")
 def aptInstall(lst,args):

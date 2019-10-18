@@ -1,16 +1,15 @@
 {
 	"DBTYPE": "EFS",
 	"BUCKET": "s3-scanner-utilities-1",
-	"CONTAINER_TAG": "scannerresearch/scannertools:cpu-latest",
 	"KEYNAME": "ISTC-VCS1-JRB",
 	"REGION": "us-east-1",
 	"VPC_STACK_NAME": "eks-vpc2",
 	"AWSACCT": "601041732504",
 	"CLUSTERNAME": "HERMESPEAKQS3",
 	"NODEGROUP_LABEL":"alpha.eksctl.io/nodegroup-name",
-	"SPARKON":true,
+	"SPARKON":false,
 	"SCANNERON":true,
-	"VDMSON":true,
+	"VDMSON":false,
 	"EFSON":true,
 	"NodeGroups": [
 		{
