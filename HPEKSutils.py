@@ -5,7 +5,6 @@ import os.path
 from optparse import OptionParser
 import time
 import json
-from tqdm import tqdm
 import datetime
 import shlex, subprocess
 
@@ -138,14 +137,14 @@ def asgDesiredSize():
 
 ''' System and application functions '''
 
-def wait_bar(seconds):
-    wait_range = tqdm(range(seconds)) 
-    for ii in wait_range:
-        wait_range.refresh()
-        time.sleep(1)
-    wait_range.write("DONE", file=None, end='\n', nolock=False)
-    wait_range.close()
-    print()
+# def wait_bar(seconds):
+#     wait_range = tqdm(range(seconds)) 
+#     for ii in wait_range:
+#         wait_range.refresh()
+#         time.sleep(1)
+#     wait_range.write("DONE", file=None, end='\n', nolock=False)
+#     wait_range.close()
+#     print()
 
 def set_environ(kwargs):
     # Fix for root with bad home (ubuntu 16.04)
