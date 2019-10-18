@@ -202,7 +202,7 @@ def build_staging(kwargs):
     if not os.path.isfile(heptauthdst):
         shutil.copy2(heptauth,heptauthdst)
     bashrcpath = os.path.join(os.environ['HOME'],".bashrc")
-    oscmd("echo 'export PATH=$HOME/bin:$PATH' >> %s" % bashrcpath)
+    oscmd("echo 'export PATH=$HOME/bin:.:$PATH' >> %s" % bashrcpath)
     os.environ['PATH'] = os.environ['PATH'] + ":" + bindir
     
     ''' EKSCTL '''
@@ -247,7 +247,7 @@ def installScanner(kwargs):
     ''' Final cleanups '''
     oscmd("chmod +x /usr/local/lib/libstorehouse.so")
     os.environ['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH'] + ':/usr/local/lib'
-    oscmd("echo LD_LIBRARY_PATH=%s >> %s" % (os.environ['LD_LIBRARY_PATH'],
+    oscmd("echo export LD_LIBRARY_PATH=%s >> %s" % (os.environ['LD_LIBRARY_PATH'],
                                              os.path.join(os.environ['HOME'],".bashrc")))
 
 def installScannerTools(kwargs):
