@@ -52,10 +52,10 @@ def main():
     output = db.io.Output(run_frames, outstreamlist)
     
     db.run(output, scan.PerfParams.estimate(), cache_mode=scan.CacheMode.Ignore)
-    
+    OUTDIR="."
     for output_stream in outstreamlist:
-        if os.path.isdir(EFSR):
-            sname = os.path.join(".",output_stream.name())
+        if os.path.isdir(OUTDIR):
+            sname = os.path.join(OUTDIR,output_stream.name())
             print("Saving %s" % sname)
             output_stream.save_mp4(sname)
 
