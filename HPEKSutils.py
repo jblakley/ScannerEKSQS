@@ -148,7 +148,8 @@ def asgDesiredSize():
 
 def set_environ(kwargs):
     # Fix for root with bad home (ubuntu 16.04)
-    if os.environ['USER'] == 'root' and os.environ['HOME'] != '/root':
+    if 'USER' in os.environ and 'HOME' in os.environ and \
+        os.environ['USER'] == 'root' and os.environ['HOME'] != '/root':
         os.environ['HOME'] = '/root'
     kwargs = setKubeConfig(kwargs)
     for key in kwargs.keys():
