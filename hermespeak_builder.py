@@ -169,7 +169,7 @@ def build_staging(kwargs):
     pipInstall(piplst,"")
     
     ''' Docker '''
-    oscmd("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -")
+    oscmd("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -")
     rel = cmd0("lsb_release -cs")
     oscmd("add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu %s stable'" % rel)
     aptUpdate()
