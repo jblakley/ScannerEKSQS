@@ -251,7 +251,7 @@ def installScanner(kwargs):
                                              os.path.join(os.environ['HOME'],".bashrc")))
 
 def installScannerTools(kwargs):
-    oscmd("banner install scannertools")
+    oscmd("banner install scanner tools")
     scannertools = "/opt/scannertools"
     if not os.path.isdir(scannertools):
         oscmd("git clone https://github.com/scanner-research/scannertools %s" % scannertools)
