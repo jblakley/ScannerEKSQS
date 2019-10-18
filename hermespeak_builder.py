@@ -154,7 +154,6 @@ def main():
         
 ''' Application Functions '''
 def build_staging(kwargs):
-
     ''' Upfront configure '''
     if not 'USER' in os.environ:
         os.environ['USER'] = "root"
@@ -162,11 +161,13 @@ def build_staging(kwargs):
         os.environ['HOME'] = "/root"
    
     ''' General installs '''
-    aptlst  = ['vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev']
+    aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev']
     piplst = ['numpy','tqdm']
     aptUpdate()
     aptInstall(aptlst,"")
     pipInstall(piplst,"")
+    
+    oscmd("banner build staging machine")
     
     ''' Docker '''
     oscmd("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -")
@@ -227,6 +228,8 @@ def installScanner(kwargs):
     scannerhome = "/opt/scanner"
     if not os.path.isdir(scannerhome):
         oscmd("git clone https://github.com/scanner-research/scanner %s" % scannerhome)
+    GITVERSION="820f85a082a9a5436e35c7986bb917ee0267e0b1"
+    oscmd("git checkout %s" % GITVERSION)
     os.chdir(scannerhome)
     oscmd("bash ./deps.sh -a --prefix /usr/local")
     if not os.path.isdir("build"):
