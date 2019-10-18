@@ -128,6 +128,7 @@ def main():
         ''' Install Scanner '''
         if buildStaging:
             installScanner(kwargs)
+            runPyProg("smokescanner-local-v1.py")
         ''' Create a Cluster '''
         if createCluster is True:
             create_cluster(kwargs)            
@@ -537,8 +538,7 @@ def run_smoke(kwargs):
     print("Running smoke test on cluster %s" % kwargs['CLUSTERNAME'])
     if kwargs['SCANNERON']:
         get_media(kwargs)
-        cmdstr = ("python3 smokescanner-v4.py")
-        retcode = oscmd(cmdstr)    # Need to check for success
+        runPyProg("smokescanner-v4.py")
     return
 
 def get_media(kwargs):
@@ -557,6 +557,8 @@ def aptInstall(lst,args):
     oscmd("apt install -y %s %s" % (args,' '.join(lst)))
 def pipInstall(lst,args):
     oscmd("pip3 install %s %s" % (args,' '.join(lst)))
+def runPyProg(progn):
+    oscmd("python3 ./%s" % progn)
 
 def getDBGSTR():
     if debugOn:
