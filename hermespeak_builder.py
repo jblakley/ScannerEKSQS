@@ -8,8 +8,6 @@ import time
 import json
 import yaml
 
-from tqdm import tqdm
-
 from HPEKSutils import *
 
 SLEEPTIME = 10
@@ -152,8 +150,8 @@ def main():
 ''' Application Functions '''
 def build_staging(kwargs):
     ''' General installs '''
-    aptlst  = ['jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev']
-    piplst = ['numpy']
+    aptlst  = ['vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev']
+    piplst = ['numpy','tqdm']
     aptUpdate()
     aptInstall(aptlst,"")
     pipInstall(piplst,"")
