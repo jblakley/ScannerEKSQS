@@ -100,6 +100,11 @@ def main():
         ''' Complete any required options by user input '''
         if not 'CLUSTERNAME' in kwargs:
             kwargs['CLUSTERNAME'] = input("Enter clustername: ")
+        
+        ''' Basic Configuration '''
+        if buildStaging:
+            build_staging(kwargs)
+            
         ''' assumes AWS credentials are set '''
         kwargs = getAWScred(kwargs)   
         kwargs = set_environ(kwargs)
@@ -120,9 +125,9 @@ def main():
             not deployCluster and not runSmoke:
             print("No other tasks to do -- exiting")
             sys.exit(0)
-        ''' Build a staging machine '''
+        ''' Install Scanner '''
         if buildStaging:
-            build_staging(kwargs)
+            installScanner(kwargs)
         ''' Create a Cluster '''
         if createCluster is True:
             create_cluster(kwargs)            
@@ -193,12 +198,8 @@ def build_staging(kwargs):
     oscmd("curl --silent --location \"https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz\" | tar xz -C /tmp")
     oscmd("mv /tmp/eksctl /usr/local/bin && eksctl version")
     
-    ''' Install Scanner '''
-    installScanner(kwargs)
-    ''' Install ScannerTools '''
-    installScannerTools(kwargs)
-    ''' Build Special Scanner Operators '''
-    buildScannerOperators(kwargs)
+
+
     
 def installScanner(kwargs):
     ''' Dependencies '''
@@ -228,6 +229,10 @@ def installScanner(kwargs):
     oscmd("cmake .. && make -j%s" % nproc)
     os.chdir(scannerhome)
     oscmd("bash ./build.sh")
+    ''' Install ScannerTools '''
+    installScannerTools(kwargs)
+    ''' Build Special Scanner Operators '''
+    buildScannerOperators(kwargs)
 
 def installScannerTools(kwargs):
     scannertools = "/opt/scannertools"
