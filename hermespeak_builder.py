@@ -206,9 +206,6 @@ def build_staging(kwargs):
     oscmd("curl --silent --location \"https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz\" | tar xz -C /tmp")
     oscmd("mv /tmp/eksctl /usr/local/bin && eksctl version")
     
-
-
-    
 def installScanner(kwargs):
     ''' Dependencies '''
     deplist = ["build-essential",
@@ -228,9 +225,9 @@ def installScanner(kwargs):
     scannerhome = "/opt/scanner"
     if not os.path.isdir(scannerhome):
         oscmd("git clone https://github.com/scanner-research/scanner %s" % scannerhome)
-    GITVERSION="820f85a082a9a5436e35c7986bb917ee0267e0b1"
-    oscmd("git checkout %s" % GITVERSION)
     os.chdir(scannerhome)
+    GITVERSION="820f85a082a9a5436e35c7986bb917ee0267e0b1"
+    oscmd("git checkout %s" % GITVERSION)    
     oscmd("bash ./deps.sh -a --prefix /usr/local")
     if not os.path.isdir("build"):
         os.mkdir("build")
