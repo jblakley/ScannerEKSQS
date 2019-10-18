@@ -23,7 +23,7 @@ def main():
     global verboseOn
 
     KEYNAME=""
-    
+    origdir = os.getcwd()
     try:
         print("# Start HermesPeak Builder")
         
@@ -104,6 +104,7 @@ def main():
         ''' Basic Configuration '''
         if buildStaging:
             build_staging(kwargs)
+        os.chdir(origdir)
             
         ''' assumes AWS credentials are set '''
         kwargs = getAWScred(kwargs)   
@@ -128,6 +129,7 @@ def main():
         ''' Install Scanner '''
         if buildStaging:
             installScanner(kwargs)
+            os.chdir(origdir)
             runPyProg("smokescanner-local-v1.py")
         ''' Create a Cluster '''
         if createCluster is True:
