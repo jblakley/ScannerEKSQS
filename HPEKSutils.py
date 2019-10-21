@@ -63,7 +63,8 @@ def newKubeConfig(kwargs):
     kubedir = "%s/.kube" % os.environ['HOME']
     if not os.path.isdir(kubedir):
         os.mkdir(kubedir)
-    confign = os.path.join(kubedir,"config-%s" % kwargs['CLUSTERNAME'])
+#     confign = os.path.join(kubedir,"config-%s" % kwargs['CLUSTERNAME'])
+    confign = os.path.join(kubedir,"config")
     with open("./kubeconfig.template") as templatef:
         templatel = templatef.readlines()
     outlines = []

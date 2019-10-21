@@ -9,10 +9,25 @@ spec:
       labels:
         app: scanner-master
     spec:
+      volumes:
+       - name: scanner-config
+         configMap:
+           name: scanner-configmap
+       - name: efs-pvc
+         persistentVolumeClaim:
+           claimName: efs    
+       - name: efs-sdb-pvc
+         persistentVolumeClaim:
+           claimName: efs-sdb
       containers:
         - name: scanner-master
           image: 601041732504.dkr.ecr.us-east-1.amazonaws.com/scanner:scanner-master
           imagePullPolicy: Always
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
           env:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
@@ -30,15 +45,18 @@ spec:
               value: '0'
             - name: GLOG_v
               value: '2'
-          resources:
-            requests:
-              cpu: 32
+#          resources:
+#            requests:
+#              cpu: 2
           ports:
             - containerPort: 8080
           volumeMounts:
-            - name: scanner-config
-              mountPath: /root/.scanner/
-      volumes:
-       - name: scanner-config
-         configMap:
-           name: scanner-configmap
+            - name: efs-sdb-pvc
+              mountPath: /root/.scanner
+            - name: efs-pvc
+              mountPath: /efsc
+#            - name: efs-sdb-pvc
+#              mountPath: /efs-sdb
+      nodeSelector:
+          alpha.eksctl.io/nodegroup-name: Scanner
+

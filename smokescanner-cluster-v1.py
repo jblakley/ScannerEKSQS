@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+import scannerpy as scan
+import scannertools.face_detection
+import scannertools.vis
+# import scannertools.imgproc
+
+import os.path
+import subprocess as sp
+import shutil
+import time, datetime
+
+
+
+def main():
+    
+    os.environ['KUBECONFIG'] = cmd0("ls -tr /root/.kube/config")
+    os.environ['PATH'] = os.environ['PATH'] + ":."
+    os.environ['AWS_ACCESS_KEY_ID'] = cmd0('grep aws_access_key_id /root/.aws/credentials|cut -f2 -d "="')
+    os.environ['AWS_SECRET_ACCESS_KEY'] = cmd0('grep aws_secret_access_key /root/.aws/credentials|cut -f2 -d "="')
+    
+
+    example_video_path = '/efsc/star_wars_heros.mp4'
+    
+    ''' Get the media locally '''
+    if not os.path.isfile(example_video_path):
+        print("File does not exist: %s" % example_video_path)
+        retcode = oscmd("wget -P /efsc/ https://storage.googleapis.com/scanner-data/tutorial_assets/star_wars_heros.mp4")    
+    partlist = [example_video_path]    
+    print('Connecting to Scanner database/client...')
+    print('Finding master IP...')
+    ip = cmd0("kubectl get services scanner-master --output json | jq -r '.status.loadBalancer.ingress[0].hostname'")
+    port = cmd0("kubectl get svc/scanner-master -o json | jq '.spec.ports[0].port' -r")
+    master = '{}:{}'.format(ip, port)
+    print('Master ip: {:s}'.format(master))
+
+    with open('config.toml', 'w') as f:
+        config_text = cmds("kubectl get configmaps scanner-configmap -o json | jq '.data[\"config.toml\"]' -r")
+        f.write(config_text)
+
+    db = scan.Client(
+        master=master,
+        start_cluster=False,
+        config_path='./config.toml',
+        grpc_timeout=60)
+    print(db.summarize())
+    db.load_op("/opt/scanner/examples/tutorials/resize_op/libresize_op.so",
+            "/opt/scanner/examples/tutorials/resize_op/resize_pb2.py")
+    instreamlist = []
+    outstreamlist = []
+    for fname in partlist:
+        if not os.path.isfile(fname):
+            print("Input file %s does not exist, skipping" % fname)
+            continue
+     
+        bname = os.path.basename(fname)[:-4] # drop the suffix
+        instreamlist.append(scan.NamedVideoStream(db, bname ,path=fname))
+        outfname = 'processed-%s-%s' % (humandate(time.time()),bname)
+        outstreamlist.append(scan.NamedVideoStream(db,outfname))
+
+    input_frames = db.io.Input(instreamlist)
+    
+    ''' Pipeline '''
+    resized_frames = db.ops.MyResize(frame=input_frames, width=640, height=480)
+#     sampled_frames = db.streams.Stride(resized_frames, [3])
+#     face_frames = db.ops.MTCNNDetectFaces(frame=sampled_frames)
+#     boxed_face_frames = db.ops.DrawBboxes(frame=sampled_frames, bboxes=face_frames)
+     
+    run_frames = resized_frames
+    
+    output = db.io.Output(run_frames, outstreamlist)
+    
+    db.run(output, scan.PerfParams.estimate(), cache_mode=scan.CacheMode.Ignore)
+    OUTDIR="."
+    for output_stream in outstreamlist:
+        if os.path.isdir(OUTDIR):
+            sname = os.path.join(OUTDIR,output_stream.name())
+            print("Saving %s" % sname)
+            output_stream.save_mp4(sname)
+
+    print(db.summarize())
+    
+    print('Complete!')
+    
+    
+def oscmd(cmdstr): # Prints out to console and returns exit status
+    return os.system(cmdstr)
+
+def cmd(cmdstr): # Returns the output of the command as a list
+    output = os.popen(cmdstr).read().split("\n")
+    return output
+
+def cmd0(cmdstr): # Returns first line of output as a string
+    retlst = cmd(cmdstr)
+    return retlst[0].strip()
+
+def cmds(cmdstr): # Returns all output  of the command as a string
+    output = os.popen(cmdstr).read()
+    return output
+
+def cmd_subp(cmdstr):
+    args = shlex.split(cmdstr)
+    procdata = subprocess.Popen(args)
+    return procdata
+
+def humandate(unixtime):
+    retstr = datetime.datetime.fromtimestamp(unixtime).strftime('%Y-%m-%d-%H-%M-%S-%f')
+    return retstr
+
+if __name__ == '__main__': main()
+    

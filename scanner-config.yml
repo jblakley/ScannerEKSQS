@@ -3,11 +3,9 @@ kind: ConfigMap
 data:
   config.toml: |
     [storage]
-    type = "s3"
-    bucket = "s3-scanner-utilities-1"
-    db_path = "scanner_db"
-    region = "us-east-1"
-    endpoint = "s3.us-east-1.amazonaws.com"
+    type = "posix"
+    db_path = "/root/.scanner/db"
 
 metadata:
   name: scanner-configmap
+

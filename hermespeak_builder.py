@@ -9,20 +9,17 @@ import json
 import yaml
 
 from HPEKSutils import *
+from awscli.customizations.emr.constants import FALSE
+
 
 SLEEPTIME = 10
 
 
 def main():
     ''' Default Parameters '''
-    VPC_STACK_NAME = "" 
-    AWSACCT = ""
     CONFIGFILE = "hpeb_config_new.json"
-    
     global debugOn
     global verboseOn
-
-    KEYNAME=""
     origdir = os.getcwd()
     try:
         print("# Start HermesPeak Builder")
@@ -141,16 +138,18 @@ def main():
         ''' Run a smoke test '''
         if runSmoke is True:
             run_smoke(kwargs)
-#         fname = create_setEKSSenv(kwargs)
         print ("# Completed Processing --> Exiting")
-#         print ("#\tDon't forget to run:\n. ./%s" % fname)
         
         ''' End App Run '''
         
     except KeyboardInterrupt:
         sys.exit(0)
-        
+
 ''' Application Functions '''
+def runTest(kwargs):
+    connect_efs(kwargs)
+    
+    sys.exit(0)
 def build_staging(kwargs):
     ''' Upfront configure '''
     if not 'USER' in os.environ:
@@ -159,7 +158,7 @@ def build_staging(kwargs):
         os.environ['HOME'] = "/root"
    
     ''' General installs '''
-    aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev']
+    aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev','nfs-common']
     piplst = ['numpy','tqdm']
     aptUpdate()
     aptInstall(aptlst,"")
@@ -363,10 +362,39 @@ def createClusterConfig(kwargs,fname):
         yaml.dump(templated, stream, default_flow_style=False, allow_unicode=True) 
 
 def connect_efs(kwargs):
-    print("Connected Elastic File Store")
-    cmdstr = ("bash %s ./connect_efs.sh" % getDBGSTR())
-    retcode = oscmd(cmdstr)    # Need to check for success TODO
-    return retcode
+    print("Connecting Elastic File Store")
+ 
+    REGION = kwargs['REGION']
+    EFSVOL = cmd0("aws efs describe-file-systems|jq -r '.FileSystems[].FileSystemId'")
+    ''' Start the provisioner '''
+    oscmd("kubectl apply -f efs-manifest.yaml")
+    ''' Wait for efs-provisioner '''
+    running = False
+    while not running:
+        if oscmd("kubectl get pods|egrep '^efs.*Running'") == 0:
+            break
+        time.sleep(SLEEPTIME)
+    while not running:
+        if oscmd("kubectl get pv -o json|jq -r '.items[].metadata.name'") == 0:
+            break
+        time.sleep(SLEEPTIME)
+#     EFSPVNAME=cmd0("kubectl get pv -o json|jq -r '.items[].metadata.name'")
+    EFSPVNAME=cmd0("kubectl get pvc -o json|jq -r '.items[] | select(.metadata.name == \"efs\") | .spec.volumeName'")
+    SDBPVNAME=cmd0("kubectl get pvc -o json|jq -r '.items[] | select(.metadata.name == \"efs-sdb\") | .spec.volumeName'")
+    oscmd("kubectl patch pv %s -p '{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}'" % EFSPVNAME)
+    oscmd("kubectl patch pv %s -p '{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}'" % SDBPVNAME)
+    dlist = [("/","/efs"),("/efs-"+ EFSPVNAME,"/efsc"),
+             ("/efs-sdb-"+ SDBPVNAME, "/efs-sdb"),
+             ("/efs-sdb-"+ SDBPVNAME, "/root/.scanner")  ]
+    [os.mkdir(dname[1]) for dname in dlist if not os.path.isdir(dname[1])]    
+    
+    for mp in dlist:
+        if oscmd("mountpoint -q %s" % mp[1]) != 0:
+            mount_efsdrive(EFSVOL, REGION, mp[0],mp[1])
+
+    return
+def mount_efsdrive(vol,reg,rt, mp):
+    oscmd(" mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport %s.efs.%s.amazonaws.com:%s %s" % (vol, reg, rt, mp))
 
 def build_deployment(kwargs):
     print("Deploying deployment for %s" % kwargs['CLUSTERNAME'])
@@ -394,11 +422,6 @@ def build_deployment(kwargs):
         oscmd('docker push %s:scanner-worker' % REPO_URI)
         oscmd('docker push %s:scanner-client' % REPO_URI)        
         print("Completed Scanner Build")
-    if 'SPARKON' in kwargs and kwargs['SPARKON']:
-        print("Building Spark Container")
-        cmdstr = ("bash %s ./build_deployment.sh" % getDBGSTR())
-        retcode = oscmd(cmdstr)    # Need to check for success
-        print("Completed Spark Build")
     if 'VDMSON' in kwargs and kwargs['VDMSON']:
         print("Building VDMS Container")
         repoexists = oscmd("aws ecr describe-repositories --repository-names vdms >/dev/null")
@@ -421,16 +444,9 @@ def deploy(kwargs):
                     (kwargs['AWS_ACCESS_KEY_ID'], kwargs['AWS_SECRET_ACCESS_KEY']))
         if 'SCANNERON' in kwargs and kwargs['SCANNERON']:
             deployScanner(kwargs)           
-        if 'SPARKON' in kwargs and kwargs['SPARKON']:
-            deploySpark(kwargs)
         if 'VDMSON' in kwargs and kwargs['VDMSON']:
             deployVDMS(kwargs)
 
-def deploySpark(kwargs):
-    print("Deploying Spark %s" % kwargs['CLUSTERNAME'])
-    cmdstr = ("bash %s ./deploySpark.sh" % getDBGSTR())
-    retcode = oscmd(cmdstr)    # Need to check for success
-    return retcode
 
 def deployScanner(kwargs):
     print("Deploying Scanner %s" % kwargs['CLUSTERNAME'])
@@ -534,7 +550,7 @@ def run_smoke(kwargs):
     print("Running smoke test on cluster %s" % kwargs['CLUSTERNAME'])
     if kwargs['SCANNERON']:
         get_media(kwargs)
-        runPyProg("smokescanner-v4.py")
+        runPyProg("smokescanner-cluster-v1.py")
     return
 
 def get_media(kwargs):
