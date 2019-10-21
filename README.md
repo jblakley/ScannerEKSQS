@@ -89,7 +89,6 @@ You can delete the cluster with:
 ```
 ./hermespeak_builder.py --delete
 ```
-Deleting and halting are standalone -- they execute and then exit. 
 
 Complete Command Line Options:
 
