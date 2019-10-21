@@ -7,7 +7,6 @@
 	"AWSACCT": "601041732504",
 	"CLUSTERNAME": "HERMESPEAKQS3",
 	"NODEGROUP_LABEL":"alpha.eksctl.io/nodegroup-name",
-	"SPARKON":false,
 	"SCANNERON":true,
 	"VDMSON":false,
 	"EFSON":true,
@@ -19,14 +18,6 @@
 			"maxNodes": 2,
 			"desiredNodes": 2,
 			"CONTAINER_TAG": "scannerresearch/scannertools:cpu-latest"
-		},
-		{
-			"GROUPNAME": "Spark",
-			"INSTANCE_TYPE": "m4.xlarge",
-			"ISON":false,			
-			"maxNodes": 4,
-			"desiredNodes": 4,		
-			"CONTAINER_TAG": "601041732504.dkr.ecr.us-east-1.amazonaws.com/spark:V130"
 		},
 		{
 			"GROUPNAME": "Vdms",

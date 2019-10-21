@@ -454,11 +454,11 @@ def deployScanner(kwargs):
     if 'DBTYPE' in kwargs:
         dbtype = kwargs['DBTYPE']
         if not dbtype in ['EFS','S3']:
-            print("Invalid db storage type: %s, assuming S3" % dbtype)
-            dbtype = 'S3'
+            print("Invalid db storage type: %s, assuming EFS" % dbtype)
+            dbtype = 'EFS'
     else:
-        print ("No db storage type specified, assuming S3")
-        dbtype = "S3"
+        print ("No db storage type specified, assuming EFS")
+        dbtype = "EFS"
     oscmd("kubectl delete -f scanner-config.yml")    # May error if doesn't exist
     configyml = 'scanner-config.yaml.template.' + dbtype
     configtoml = 'config.toml.template.' + dbtype
