@@ -1,1 +1,0 @@
-# SparkEKSQS: README

@@ -1,6 +1,0 @@
-[storage]
-type = "s3"
-bucket = "<BUCKET>"
-db_path = "scanner_db"
-region = "<REGION>"
-endpoint = "s3.<REGION>.amazonaws.com"
