@@ -36,4 +36,4 @@ cd ~/git
 test -d ScannerEKSQS || git clone -b $BRANCH https://github.com/jblakley/ScannerEKSQS
 
 cd $QSHOME
-# python3 ./hermespeak_builder.py --staging
+python3 ./hermespeak_builder.py --staging
