@@ -43,6 +43,9 @@ def main():
         parser.add_option("-T", "--smoke",
                       action="store_true", dest="smoke", default=False,
                       help="Try out your cluster by running a smoke test")
+        parser.add_option("-R", "--remount",
+                      action="store_true", dest="remount", default=False,
+                      help="Remount EFS")
         parser.add_option( "-e", "--delete",
                       action="store_true", dest="delete", default=False,
                       help="delete the cluster")
@@ -84,6 +87,7 @@ def main():
         deployCluster = options.deploy
         deleteCluster = options.delete
         runSmoke = options.smoke
+        remountEFS = options.remount
 
         if options.clustername is not None:
             kwargs['CLUSTERNAME'] = options.clustername
@@ -114,7 +118,7 @@ def main():
 
         ''' Check if any other tasks to do '''
         if not createCluster and not buildDeployment and not buildStaging and \
-            not deployCluster and not runSmoke:
+            not deployCluster and not runSmoke and not remountEFS:
             print("No other tasks to do -- exiting")
             sys.exit(0)
         ''' Install Scanner '''
@@ -134,7 +138,9 @@ def main():
         ''' Deploy the services '''
         if deployCluster is True:
             deploy(kwargs)
-
+        ''' Remount EFS '''
+        if remountEFS:
+            remount_EFS(kwargs)
         ''' Run a smoke test '''
         if runSmoke is True:
             run_smoke(kwargs)
@@ -159,7 +165,7 @@ def build_staging(kwargs):
    
     ''' General installs '''
     aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev','nfs-common']
-    piplst = ['numpy','tqdm']
+    piplst = ['numpy','tqdm','tensorflow','align','pandas']
     aptUpdate()
     aptInstall(aptlst,"")
     pipInstall(piplst,"")
@@ -393,6 +399,22 @@ def connect_efs(kwargs):
             mount_efsdrive(EFSVOL, REGION, mp[0],mp[1])
 
     return
+
+def remount_EFS(kwargs):
+    REGION = kwargs['REGION']
+    EFSVOL = cmd0("aws efs describe-file-systems|jq -r '.FileSystems[].FileSystemId'")
+    EFSPVNAME=cmd0("kubectl get pvc -o json|jq -r '.items[] | select(.metadata.name == \"efs\") | .spec.volumeName'")
+    SDBPVNAME=cmd0("kubectl get pvc -o json|jq -r '.items[] | select(.metadata.name == \"efs-sdb\") | .spec.volumeName'")
+
+    dlist = [("/","/efs"),("/efs-"+ EFSPVNAME,"/efsc"),
+             ("/efs-sdb-"+ SDBPVNAME, "/efs-sdb"),
+             ("/efs-sdb-"+ SDBPVNAME, "/root/.scanner")  ]
+    
+    for mp in dlist:
+        if oscmd("mountpoint -q %s" % mp[1]) == 0:
+            oscmd("umount %s" % mp[1])
+        mount_efsdrive(EFSVOL, REGION, mp[0],mp[1])
+    
 def mount_efsdrive(vol,reg,rt, mp):
     oscmd(" mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport %s.efs.%s.amazonaws.com:%s %s" % (vol, reg, rt, mp))
 

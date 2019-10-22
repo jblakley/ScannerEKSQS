@@ -128,7 +128,7 @@ def check_arn(kwargs):
 #         print("ARN %s exists" % ARN)
         return True
     ''' ARN does not exist -- create it '''
-    print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account" % ARN)
+    print ("ARN %s does not exist. \n\tFrom AWS IAM console, Roles-->Create Role-->EKS-->Permissions-->Next-->Next\n\tName the role 'eksServiceRole'\n\tThis only needs to be done one time for the account\nNOTE: This error can occur if aws configuration is not set to json output" % ARN)
     return False
 def asgDesiredSize():
     asgoutput = cmd("aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[].DesiredCapacity'")
