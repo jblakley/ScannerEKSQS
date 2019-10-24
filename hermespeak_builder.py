@@ -229,8 +229,8 @@ def installScanner(kwargs):
     if not os.path.isdir(scannerhome):
         oscmd("git clone https://github.com/scanner-research/scanner %s" % scannerhome)
     os.chdir(scannerhome)
-    GITVERSION="820f85a082a9a5436e35c7986bb917ee0267e0b1"
-    oscmd("git checkout %s" % GITVERSION)    
+#     GITVERSION="820f85a082a9a5436e35c7986bb917ee0267e0b1"
+#     oscmd("git checkout %s" % GITVERSION)    
     oscmd("bash ./deps.sh -a --prefix /usr/local")
     if not os.path.isdir("build"):
         os.mkdir("build")
