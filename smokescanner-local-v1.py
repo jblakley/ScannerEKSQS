@@ -43,8 +43,8 @@ def main():
     
     ''' Pipeline '''
     resized_frames = db.ops.MyResize(frame=input_frames, width=640, height=480)
-    face_frames = db.ops.MTCNNDetectFaces(frame=resized_frames)
-    boxed_face_frames = db.ops.DrawBboxes(frame=resized_frames, bboxes=face_frames)
+#    face_frames = db.ops.MTCNNDetectFaces(frame=resized_frames)
+#    boxed_face_frames = db.ops.DrawBboxes(frame=resized_frames, bboxes=face_frames)
      
     run_frames = resized_frames
     
