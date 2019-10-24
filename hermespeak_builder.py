@@ -77,6 +77,13 @@ def main():
         with open(configJSON) as jfile:
             kwargs = json.load(jfile)
         
+        ''' Set high level switches for convenience '''
+        for ng in kwargs['NodeGroups']:
+            if ng['GROUPNAME'] == 'Scanner':
+                kwargs['SCANNERON'] = ng['ISON']
+            elif ng['GROUPNAME'] == 'Vdms':
+                kwargs['VDMSON'] = ng['ISON']
+
         ''' Only set on command line '''
         verboseOn = options.verbose
         debugOn = options.debug
@@ -182,7 +189,7 @@ def build_staging(kwargs):
     ''' Upgrade awscli '''
     pipInstall(['awscli'],"--upgrade --user")
     
-    ''' Kubectl '''
+    ''' Install Kubectl '''
     if not os.path.isfile("/etc/apt/sources.list.d/kubernetes.list"):
         oscmd("curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -")
         oscmd("touch /etc/apt/sources.list.d/kubernetes.list")
@@ -200,6 +207,8 @@ def build_staging(kwargs):
     heptauthdst = os.path.join(bindir,heptauth)
     if not os.path.isfile(heptauthdst):
         shutil.copy2(heptauth,heptauthdst)
+
+    ''' Configure paths in bashrc and in os.environ '''
     bashrcpath = os.path.join(os.environ['HOME'],".bashrc")
     oscmd("echo 'export PATH=$HOME/bin:.:$PATH' >> %s" % bashrcpath)
     os.environ['PATH'] = os.environ['PATH'] + ":" + bindir
@@ -225,6 +234,8 @@ def installScanner(kwargs):
         "libxcb-xfixes0-dev","mercurial","texinfo","zlib1g-dev","curl","libcap-dev",
         "libboost-all-dev","libgnutls-dev","libpq-dev","postgresql"]
     aptInstall(deplist,"")
+    
+    ''' Build Dependencies and Scanner '''
     scannerhome = "/opt/scanner"
     if not os.path.isdir(scannerhome):
         oscmd("git clone https://github.com/scanner-research/scanner %s" % scannerhome)
@@ -237,12 +248,17 @@ def installScanner(kwargs):
     os.chdir("build")
     nproc = cmd0("nproc")
     oscmd("cmake .. && make -j%s" % nproc)
+
+    ''' Build and install scannerpy '''
     os.chdir(scannerhome)
     oscmd("bash ./build.sh")
+    
     ''' Install ScannerTools '''
     installScannerTools(kwargs)
+    
     ''' Build Special Scanner Operators '''
     buildScannerOperators(kwargs)
+    
     ''' Final cleanups '''
     oscmd("chmod +x /usr/local/lib/libstorehouse.so")
     os.environ['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH'] + ':/usr/local/lib'

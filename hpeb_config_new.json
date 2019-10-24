@@ -7,8 +7,6 @@
 	"AWSACCT": "601041732504",
 	"CLUSTERNAME": "HERMESPEAKQS3",
 	"NODEGROUP_LABEL":"alpha.eksctl.io/nodegroup-name",
-	"SCANNERON":true,
-	"VDMSON":true,
 	"EFSON":true,
 	"NodeGroups": [
 		{
