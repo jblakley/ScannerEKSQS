@@ -34,7 +34,7 @@ The basic structure of ScannerEKSQS (and most Scanner EKS deployments) is a stag
 Download baseline-ubuntu-xenial.sh and run it. This script assumes that your scanner client is running Ubuntu 16.04. You can get the script with:
 
 ```
-wget https://github.com/jblakley/ScannerEKSQS/raw/master/baseline-xenial.sh
+wget https://github.com/jblakley/ScannerEKSQS/raw/dev/baseline-xenial.sh
 ```
 
 To continue, you must be root. Run:
