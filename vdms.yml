@@ -1,0 +1,52 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: vdms
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: vdms
+    spec:
+      volumes:
+       - name: efs-pvc
+         persistentVolumeClaim:
+           claimName: efs    
+       - name: efs-sdb-pvc
+         persistentVolumeClaim:
+           claimName: efs-sdb
+      containers:
+        - name: vdms
+          image: 601041732504.dkr.ecr.us-east-1.amazonaws.com/vdms:latest
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-storage-key
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-storage-key
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: GLOG_logtostderr
+              value: '1'
+            - name: GLOG_minloglevel
+              value: '0'
+            - name: GLOG_v
+              value: '2'
+          ports:
+            - containerPort: 55555
+          volumeMounts:
+            - name: efs-pvc
+              mountPath: /efsc
+      nodeSelector:
+          alpha.eksctl.io/nodegroup-name: Vdms
+

@@ -164,7 +164,7 @@ def build_staging(kwargs):
         os.environ['HOME'] = "/root"
    
     ''' General installs '''
-    aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev','nfs-common']
+    aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev','nfs-common','vdms']
     piplst = ['numpy','tqdm','tensorflow','align','pandas']
     aptUpdate()
     aptInstall(aptlst,"")
@@ -459,16 +459,16 @@ def build_deployment(kwargs):
         print("Completed VDMS Build")        
     return
 def deploy(kwargs):
-        cmd("kubectl delete secret aws-storage-key")
-        oscmd("kubectl create secret generic aws-storage-key \
-                --from-literal=AWS_ACCESS_KEY_ID=%s \
-                --from-literal=AWS_SECRET_ACCESS_KEY=%s" % \
-                    (kwargs['AWS_ACCESS_KEY_ID'], kwargs['AWS_SECRET_ACCESS_KEY']))
-        if 'SCANNERON' in kwargs and kwargs['SCANNERON']:
-            deployScanner(kwargs)           
-        if 'VDMSON' in kwargs and kwargs['VDMSON']:
-            deployVDMS(kwargs)
-
+    cmd("kubectl delete secret aws-storage-key")
+    oscmd("kubectl create secret generic aws-storage-key \
+            --from-literal=AWS_ACCESS_KEY_ID=%s \
+            --from-literal=AWS_SECRET_ACCESS_KEY=%s" % \
+                (kwargs['AWS_ACCESS_KEY_ID'], kwargs['AWS_SECRET_ACCESS_KEY']))
+    if 'SCANNERON' in kwargs and kwargs['SCANNERON']:
+        deployScanner(kwargs)           
+    if 'VDMSON' in kwargs and kwargs['VDMSON']:
+        deployVDMS(kwargs)
+    wait_for_deployment("worker")
 
 def deployScanner(kwargs):
     print("Deploying Scanner %s" % kwargs['CLUSTERNAME'])
@@ -504,7 +504,7 @@ def deployScanner(kwargs):
     
     ''' Expose the master port for the workers to connect to ''' 
     retcode = oscmd("kubectl expose -f master.yml --type=LoadBalancer --target-port=8080 --selector='app=scanner-master'")
-    wait_for_deployment("worker")
+#     wait_for_deployment("worker")
     return retcode
 
 def deployVDMS(kwargs):
@@ -573,6 +573,8 @@ def run_smoke(kwargs):
     if kwargs['SCANNERON']:
         get_media(kwargs)
         runPyProg("smokescanner-cluster-v1.py")
+    if kwargs['SCANNERON']:
+        runPyProg("smokevdms-v1.py")
     return
 
 def get_media(kwargs):

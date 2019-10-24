@@ -40,7 +40,7 @@ def is_cluster_running():
 def wait_for_deployment(podname):
     ''' waits until all pods are in Running state '''
     print("Waiting for all pods to be in Running state and to settle into an operational state ...")
-    SETTLETIME = 180 # seconds
+    SETTLETIME = 120 # seconds
     if not is_deployment_running(podname):
         while True:
             wait_bar(SLEEPTIME)
