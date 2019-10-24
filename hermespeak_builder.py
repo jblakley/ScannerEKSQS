@@ -171,8 +171,9 @@ def build_staging(kwargs):
         os.environ['HOME'] = "/root"
    
     ''' General installs '''
-    aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl','software-properties-common','x265','libx265-dev','nfs-common','vdms']
-    piplst = ['numpy','tqdm','tensorflow','align','pandas']
+    aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl',
+               'software-properties-common','x265','libx265-dev','nfs-common']
+    piplst = ['numpy','tqdm','tensorflow','align','pandas','vdms']
     aptUpdate()
     aptInstall(aptlst,"")
     pipInstall(piplst,"")
