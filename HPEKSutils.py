@@ -187,6 +187,3 @@ def cmd_subp(cmdstr):
 def humandate(unixtime):
     retstr = datetime.datetime.fromtimestamp(unixtime).strftime('%Y-%m-%d-%H-%M-%S-%f:')
     return retstr
-
-
-if __name__ == '__main__': main()
