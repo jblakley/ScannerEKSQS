@@ -173,10 +173,12 @@ def build_staging(kwargs):
     ''' General installs '''
     aptlst  = ['sysvbanner','vim','jq','python3-pip','apt-transport-https','ca-certificates curl',
                'software-properties-common','x265','libx265-dev','nfs-common']
-    piplst = ['numpy','tqdm','tensorflow','align','pandas','vdms']
+    piplst = ['numpy','tqdm','pandas','vdms']
+    piplst2 = ['tensorflow','align']
     aptUpdate()
     aptInstall(aptlst,"")
     pipInstall(piplst,"")
+    pipInstall(piplst2,"")
     
     oscmd("banner build staging machine")
     ''' Docker '''
