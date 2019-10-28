@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 ## Configure Ubuntu 16.04 Instance AWS for EKS and Scanner
 ## Must be root
-apt update && apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y
-apt update && apt install python3.6 -y && update-alternatives --install /usr/bin/python3 python /usr/bin/python3.6 1
+#apt update && apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa -y
+#apt update && apt install python3.5 -y && update-alternatives --install /usr/bin/python3 python /usr/bin/python3.6 1
 apt update
 apt install python3-pip jq git -y
 pip3 install tqdm
