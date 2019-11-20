@@ -20,29 +20,39 @@ wget https://github.com/jblakley/ScannerEKSQS/raw/master/create_vpc.sh
 bash create_vpc.sh  # Will also install awscli if not already there
 ```
 
- 4. Create an AWS Ubuntu 16.04 instance in your EKS vpc to serve as your scanner client. The instance type is your choice -- a c4.2xlarge w/100GB of EBS storage seems to work well. SSH into that instance and 'sudo -i' to become root. You will likely need to configure your security groups to enable SSH access. Run the rest of the quickstart from that "scanner client" instance.
+ 4. You will also need to have an Elastic File System volume for file sharing between client, master and workers. [See](https://docs.aws.amazon.com/efs/latest/ug/getting-started.html)
+
+
+
+ 5. Create an AWS Ubuntu 16.04 instance in your EKS vpc to serve as your scanner client. The instance type is your choice -- a c4.2xlarge w/100GB of EBS storage seems to work well. SSH into that instance and 'sudo -i' to become root. You will likely need to configure your security groups to enable SSH access. Run the rest of the quickstart from that "scanner client" instance.
 
 The basic structure of ScannerEKSQS (and most Scanner EKS deployments) is a staging/client AWS instance, one EKS Master Node and one or more EKS Worker Nodes.
 
 ## Running the Quick Start
 
 ### Step 1. Building a Staging Machine
-Download baseline-ubuntu-16-04.sh and run it. This script assumes that your scanner client is running Ubuntu 16.04. You can get the script with:
+Download baseline-ubuntu-xenial.sh and run it. This script assumes that your scanner client is running Ubuntu 16.04. You can get the script with:
 
 ```
-wget https://github.com/jblakley/ScannerEKSQS/raw/master/baseline-ubuntu-16-04.sh
+wget https://github.com/jblakley/ScannerEKSQS/raw/dev/baseline-xenial.sh
 ```
 
 To continue, you must be root. Run:
 
 ```
-bash baseline-ubuntu-16-04.sh 
+bash baseline-xenial.sh 
 ```
 You will be walked through a series of prompts to configure your environment. You will be prompted for your AWS credentials, your AWS account number, the AWS region, AWS output format (enter 'json'), the VPC to run the cluster in (needs to be the same as your staging machine VPC), an S3 bucket to store the scanner database in, your SSH keyname, the master and worker instance type, a tag for the scanner master and worker container you want to use (use the default unless you know why you're not), the name you want to give the cluster and how many maximum and desired nodes you want in the cluster. 
 
-You can change most of these these values in seb_config.json after the staging machine is setup. Your aws credentials are only stored in the $HOME/.aws/credentials file.
+You can change most of these these values in hpeb_config.json after the staging machine is setup. Your aws credentials are only stored in the $HOME/.aws/credentials file.
 
 After this, the quickstart will clone this repo into ~/git and build the client into a staging machine. This step takes a while as the quickstart builds scanner and all its dependencies from source.
+
+If, for some reason, you need to rerun the code to configure the client as a staging machine:
+
+```
+./hermespeak_builder.py --staging
+```
 
 At the end, your client is a staging machine with the quickstart installed.
 
@@ -54,86 +64,53 @@ cd ~/git/ScannerEKSQS
 To create a cluster, build the deployment, deploy it and run a smoke test:
 
 ```
-./scanner_EKS_builder.py --create --build --deploy
+./hermespeak_builder.py --create --build --deploy
 ```
 
 Each of these steps may be run sequentially. It may go without saying but you can't build and deploy before creating and you can't deploy before building once. Note the quickstart always runs one pod per node so you will have one master node/pod and N-1 worker nodes/pods in your cluster.
 
 ### Step 3. Using your cluster
-Once you've run the quickstart all the way through, run:
+Once you've run the quickstart all the way through, you may need to set your KUBECTL environment variable:
 
 ```
-. ./setEKSSenv.sh
+export KUBECONFIG="$HOME/.kube/config
 ```
 
-That sets your environment variables and will let you use your EKS Scanner cluster as you normally would.
+You can run a simple smoke test with:
+
+```
+./hermespeak_builder.py --smoke
+```
 
 ## Beyond the setup:
-Use the scale option to restart a cluster from a halt or to change the number of nodes and pods in your cluster. You can scale the cluster up (to the max nodes set at create time) or down (to 2 -- one node for master and one for a worker):
-
-```
-./scanner_EKS_builder.py --scale -n <NODESDESIRED>
-```
-
-You can halt your cluster (shut down the master and workers but leave the cluster in place for later restart):
-
-```
-./scanner_EKS_builder.py --halt
-```
 
 You can delete the cluster with:
 
 ```
-./scanner_EKS_builder.py --delete
+./hermespeak_builder.py --delete
 ```
-Deleting and halting are standalone -- they execute and then exit. 
 
 Complete Command Line Options:
 
 ```
-Usage: scanner_EKS_builder.py [options]
+Usage: hermespeak_builder.py [options]
 
 Options:
   -h, --help            show this help message and exit
   -c NAME, --clustername=NAME
                         use NAME as clustername
-  -n NODES, --nodesdesired=NODES
-                        use NODES as number of desired nodes in the cluster
-  -m MAXNODES, --maxnodes=MAXNODES
-                        use MAXNODES as number of maximum nodes in the cluster
-                        (only on create)
-  -i INSTANCE, --instancetype=INSTANCE
-                        Use instance type INSTANCE in cluster
   -C, --create          Create the cluster
   -B, --build           Build the deployment for the cluster
   -D, --deploy          Deploy the cluster
   -S, --staging         Make this instance a staging machine
-  -G, --scale           Scale the cluster and deployment to specified desired
-                        nodes (with -n option)
-  -H, --halt            Halt the cluster by changing autoscaling group desired
-                        size to 0
+  -T, --smoke           Try out your cluster by running a smoke test
   -e, --delete          delete the cluster
   -j FILE.json, --jsonconfig=FILE.json
                         use FILE.json as configuration file
   -d, --debug           Print debugging information
   -v, --verbose         Print detailed information #TODO
+
 ```
 
 If something goes wrong, the --debug option is pretty useful.
 
-The configuration file supports the following options:
-
-```
-{
-	"maxNodes":<INT -- maximum number of nodes for the EKS cluster>,
-	"nodesDesired":<INT -- desired number of nodes for the EKS cluster>,
-	"region":"<AWS Region>",
-	"account":"<AWS Account Number>",
-	"clusterName":"<Name for the cluster>",
-	"VPC_STACK_NAME":"<VPC of the staging machine>",
-	"CONTAINER_TAG":"<Container Tag>",
-	"BUCKET":"<AWS Bucket Name for ScannerDB and other>"
-	"INSTANCE_TYPE":<AWS instance type for master and worker nodes>"
-	"KEYNAME":"<Name of AWS SSH Key>"
-}
-```

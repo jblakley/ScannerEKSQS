@@ -3,5 +3,16 @@ WORKDIR /app
 
 COPY worker.py .
 
-ENV LD_LIBRARY_PATH /usr/local/lib/python3.5/dist-packages/scannerpy:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /usr/lib:/usr/local/lib:/usr/local/lib
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/lib/python3.5/dist-packages/scannerpy
+
+# OPENVINO PATHS
+ENV INTEL_OPENVINO_DIR /usr/local/intel/openvino
+ENV INTEL_CVSDK_DIR /usr/local/intel/openvino
+ENV INF_ENG $INTEL_OPENVINO_DIR/deployment_tools/inference_engine
+ENV IE_PLUGINS_PATH $INF_ENG/lib/intel64
+ENV HDDL_INSTALL_DIR $INF_ENG/external/hddl
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$INF_ENG/external/hddl/lib:$INF_ENG/external/gna/lib:$INF_ENG/external/mkltiny_lnx/lib:$INF_ENG/external/tbb/lib:$INF_ENG/lib/intel64:$INF_ENG/external/hddl/lib:$INF_ENG/external/gna/lib:$INF_ENG/external/mkltiny_lnx/lib:$INF_ENG/external/tbb/lib:$INF_ENG/lib/intel64:/usr/local/lib
+ENV PYTHONPATH /usr/local/intel/openvino/python/python3.5:$PYTHONPATH
+
 CMD python3 worker.py

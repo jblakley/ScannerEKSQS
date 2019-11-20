@@ -9,10 +9,24 @@ spec:
       labels:
         app: scanner-worker
     spec:
+      volumes:
+       - name: scanner-config
+         configMap:
+           name: scanner-configmap
+       - name: efs-pvc
+         persistentVolumeClaim:
+           claimName: efs
+       - name: efs-sdb-pvc
+         persistentVolumeClaim:
+           claimName: efs-sdb
       containers:
         - name: scanner-worker
           image: 601041732504.dkr.ecr.us-east-1.amazonaws.com/scanner:scanner-worker
           imagePullPolicy: Always
+#          lifecycle:
+#            postStart:
+#              exec:               
+#                command: ["install", "-d", "-m", "777","/root/.scanner"]     
           securityContext:
             privileged: true
             capabilities:
@@ -37,11 +51,14 @@ spec:
               value: '2'
           resources:
             requests:
-              cpu: 35
+              cpu: 2
           volumeMounts:
-            - name: scanner-config
-              mountPath: /root/.scanner/
-      volumes:
-       - name: scanner-config
-         configMap:
-           name: scanner-configmap
+            - name: efs-sdb-pvc
+              mountPath: /root/.scanner
+            - name: efs-pvc
+              mountPath: /efsc
+#            - name: efs-sdb-pvc
+#              mountPath: /efs-sdb
+      nodeSelector:
+          alpha.eksctl.io/nodegroup-name: Scanner              
+
